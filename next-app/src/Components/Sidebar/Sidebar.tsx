@@ -60,7 +60,7 @@ export function Sidebar({ children, userName }: SidebarProps) {
                 <div className="w-8 h-8 rounded-lg bg-white">
                   <Image src={Icono} alt="Logo" />
                 </div>
-                <span className="ml-3 font-bold text-white">PunEntrega</span>
+                <span className="ml-3 font-bold text-white">PuntoEntrega</span>
               </div>
             </Link>
           ) : (
