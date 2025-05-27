@@ -7,8 +7,348 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Usuario {
-  id     Int    @id @default(autoincrement())
-  nombre String
-  email  String @unique
+model Companies {
+  id                   String                  @id @db.VarChar(36)
+  legal_name           String                  @db.VarChar(100)
+  trade_name           String?                 @db.VarChar(100)
+  company_type         Companies_company_type?
+  legal_id             String                  @db.VarChar(40)
+  fiscal_address       String?                 @db.VarChar(256)
+  contact_email        String?                 @db.VarChar(120)
+  contact_phone        String?                 @db.VarChar(30)
+  owner_user_id        String?                 @db.VarChar(36)
+  active               Boolean?                @default(true)
+  created_at           DateTime?               @default(now()) @db.DateTime(0)
+  updated_at           DateTime?               @default(now()) @db.DateTime(0)
+  Users                Users?                  @relation(fields: [owner_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Companies_ibfk_1")
+  CompanyBankAccounts  CompanyBankAccounts[]
+  CompanyBillingConfig CompanyBillingConfig[]
+  DeliveryPoints       DeliveryPoints[]
+  LegalRepresentatives LegalRepresentatives[]
+
+  @@index([owner_user_id], map: "owner_user_id")
+}
+
+model CompanyBankAccounts {
+  id             String     @id @db.VarChar(36)
+  company_id     String?    @db.VarChar(36)
+  iban           String?    @db.VarChar(34)
+  bank_name      String?    @db.VarChar(100)
+  account_number String?    @db.VarChar(60)
+  active         Boolean?   @default(true)
+  created_at     DateTime?  @default(now()) @db.DateTime(0)
+  updated_at     DateTime?  @default(now()) @db.DateTime(0)
+  Companies      Companies? @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "CompanyBankAccounts_ibfk_1")
+
+  @@index([company_id], map: "company_id")
+}
+
+model CompanyBillingConfig {
+  id                    String                                     @id @db.VarChar(36)
+  company_id            String?                                    @db.VarChar(36)
+  billing_type          CompanyBillingConfig_billing_type?
+  document_type_id      String?                                    @db.VarChar(36)
+  identification_number String?                                    @db.VarChar(40)
+  receiver_name         String?                                    @db.VarChar(100)
+  billing_email         String?                                    @db.VarChar(120)
+  billing_phone         String?                                    @db.VarChar(30)
+  settlement_amount     Decimal?                                   @db.Decimal(12, 2)
+  settlement_frequency  CompanyBillingConfig_settlement_frequency?
+  created_at            DateTime?                                  @default(now()) @db.DateTime(0)
+  updated_at            DateTime?                                  @default(now()) @db.DateTime(0)
+  Companies             Companies?                                 @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "CompanyBillingConfig_ibfk_1")
+  DocumentTypes         DocumentTypes?                             @relation(fields: [document_type_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "CompanyBillingConfig_ibfk_2")
+
+  @@index([company_id], map: "company_id")
+  @@index([document_type_id], map: "document_type_id")
+}
+
+model DeliveryHistory {
+  id                   String          @id @db.VarChar(36)
+  delivery_point_id    String?         @db.VarChar(36)
+  package_id           String?         @db.VarChar(36)
+  delivered_by_user_id String?         @db.VarChar(36)
+  status               String?         @db.VarChar(40)
+  event_timestamp      DateTime?       @db.DateTime(0)
+  notes                String?         @db.Text
+  incident             Boolean?        @default(false)
+  incident_details     String?         @db.Text
+  created_at           DateTime?       @default(now()) @db.DateTime(0)
+  updated_at           DateTime?       @default(now()) @db.DateTime(0)
+  DeliveryPoints       DeliveryPoints? @relation(fields: [delivery_point_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "DeliveryHistory_ibfk_1")
+  Packages             Packages?       @relation(fields: [package_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "DeliveryHistory_ibfk_2")
+  Users                Users?          @relation(fields: [delivered_by_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "DeliveryHistory_ibfk_3")
+
+  @@index([delivered_by_user_id], map: "delivered_by_user_id")
+  @@index([delivery_point_id], map: "delivery_point_id")
+  @@index([package_id], map: "package_id")
+}
+
+model DeliveryPointBankAccounts {
+  id                String          @id @db.VarChar(36)
+  delivery_point_id String?         @db.VarChar(36)
+  accepts_card      Boolean?        @default(false)
+  accepts_cash      Boolean?        @default(false)
+  accepts_cod       Boolean?        @default(false)
+  iban              String?         @db.VarChar(34)
+  bank_name         String?         @db.VarChar(100)
+  account_number    String?         @db.VarChar(60)
+  active            Boolean?        @default(true)
+  created_at        DateTime?       @default(now()) @db.DateTime(0)
+  updated_at        DateTime?       @default(now()) @db.DateTime(0)
+  DeliveryPoints    DeliveryPoints? @relation(fields: [delivery_point_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "DeliveryPointBankAccounts_ibfk_1")
+
+  @@index([delivery_point_id], map: "delivery_point_id")
+}
+
+model DeliveryPoints {
+  id                                                String                      @id @db.VarChar(36)
+  company_id                                        String?                     @db.VarChar(36)
+  name                                              String                      @db.VarChar(100)
+  trade_name                                        String?                     @db.VarChar(100)
+  whatsapp_contact                                  String?                     @db.VarChar(30)
+  business_email                                    String?                     @db.VarChar(120)
+  document_type_id                                  String?                     @db.VarChar(36)
+  identification_number                             String?                     @db.VarChar(40)
+  manager_name                                      String?                     @db.VarChar(100)
+  manager_email                                     String?                     @db.VarChar(120)
+  manager_phone                                     String?                     @db.VarChar(30)
+  province                                          String?                     @db.VarChar(60)
+  canton                                            String?                     @db.VarChar(60)
+  district                                          String?                     @db.VarChar(60)
+  exact_address                                     String?                     @db.VarChar(256)
+  postal_code                                       String?                     @db.VarChar(12)
+  latitude                                          Float?                      @db.Float
+  longitude                                         Float?                      @db.Float
+  map_snapshot_url                                  String?                     @db.VarChar(256)
+  schedule_json                                     Json?
+  services_json                                     Json?
+  storage_area_m2                                   Decimal?                    @db.Decimal(10, 2)
+  accepts_xs                                        Boolean?                    @default(false)
+  accepts_s                                         Boolean?                    @default(false)
+  accepts_m                                         Boolean?                    @default(false)
+  accepts_l                                         Boolean?                    @default(false)
+  accepts_xl                                        Boolean?                    @default(false)
+  accepts_xxl                                       Boolean?                    @default(false)
+  accepts_xxxl                                      Boolean?                    @default(false)
+  active                                            Boolean?                    @default(true)
+  created_at                                        DateTime?                   @default(now()) @db.DateTime(0)
+  updated_at                                        DateTime?                   @default(now()) @db.DateTime(0)
+  DeliveryHistory                                   DeliveryHistory[]
+  DeliveryPointBankAccounts                         DeliveryPointBankAccounts[]
+  Companies                                         Companies?                  @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "DeliveryPoints_ibfk_1")
+  DocumentTypes                                     DocumentTypes?              @relation(fields: [document_type_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "DeliveryPoints_ibfk_2")
+  Guides_Guides_collection_point_idToDeliveryPoints Guides[]                    @relation("Guides_collection_point_idToDeliveryPoints")
+  Guides_Guides_delivery_point_idToDeliveryPoints   Guides[]                    @relation("Guides_delivery_point_idToDeliveryPoints")
+
+  @@index([company_id], map: "company_id")
+  @@index([document_type_id], map: "document_type_id")
+}
+
+model DocumentTypes {
+  id                   String                 @id @db.VarChar(36)
+  name                 String                 @db.VarChar(50)
+  created_at           DateTime?              @default(now()) @db.DateTime(0)
+  updated_at           DateTime?              @default(now()) @db.DateTime(0)
+  CompanyBillingConfig CompanyBillingConfig[]
+  DeliveryPoints       DeliveryPoints[]
+  LegalRepresentatives LegalRepresentatives[]
+  Users                Users[]
+}
+
+model GuidePackages {
+  id         String    @id @db.VarChar(36)
+  guide_id   String?   @db.VarChar(36)
+  package_id String?   @db.VarChar(36)
+  created_at DateTime? @default(now()) @db.DateTime(0)
+  updated_at DateTime? @default(now()) @db.DateTime(0)
+  Guides     Guides?   @relation(fields: [guide_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "GuidePackages_ibfk_1")
+  Packages   Packages? @relation(fields: [package_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "GuidePackages_ibfk_2")
+
+  @@index([guide_id], map: "guide_id")
+  @@index([package_id], map: "package_id")
+}
+
+model Guides {
+  id                                                        String               @id @db.VarChar(36)
+  created_by_user_id                                        String?              @db.VarChar(36)
+  collection_point_id                                       String?              @db.VarChar(36)
+  delivery_point_id                                         String?              @db.VarChar(36)
+  service_type                                              Guides_service_type?
+  created_at                                                DateTime?            @default(now()) @db.DateTime(0)
+  package_count                                             Int?
+  total_amount                                              Decimal?             @db.Decimal(10, 2)
+  updated_at                                                DateTime?            @default(now()) @db.DateTime(0)
+  GuidePackages                                             GuidePackages[]
+  Users                                                     Users?               @relation(fields: [created_by_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Guides_ibfk_1")
+  DeliveryPoints_Guides_collection_point_idToDeliveryPoints DeliveryPoints?      @relation("Guides_collection_point_idToDeliveryPoints", fields: [collection_point_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Guides_ibfk_2")
+  DeliveryPoints_Guides_delivery_point_idToDeliveryPoints   DeliveryPoints?      @relation("Guides_delivery_point_idToDeliveryPoints", fields: [delivery_point_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Guides_ibfk_3")
+
+  @@index([collection_point_id], map: "collection_point_id")
+  @@index([created_by_user_id], map: "created_by_user_id")
+  @@index([delivery_point_id], map: "delivery_point_id")
+}
+
+model Incidents {
+  id            String    @id @db.VarChar(36)
+  package_id    String?   @db.VarChar(36)
+  user_id       String?   @db.VarChar(36)
+  description   String?   @db.Text
+  registered_at DateTime? @db.DateTime(0)
+  status        String?   @db.VarChar(40)
+  created_at    DateTime? @default(now()) @db.DateTime(0)
+  updated_at    DateTime? @default(now()) @db.DateTime(0)
+  Packages      Packages? @relation(fields: [package_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Incidents_ibfk_1")
+  Users         Users?    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Incidents_ibfk_2")
+
+  @@index([package_id], map: "package_id")
+  @@index([user_id], map: "user_id")
+}
+
+model LegalRepresentatives {
+  id                    String         @id @db.VarChar(36)
+  company_id            String?        @db.VarChar(36)
+  document_type_id      String?        @db.VarChar(36)
+  full_name             String         @db.VarChar(100)
+  identification_number String         @db.VarChar(40)
+  email                 String?        @db.VarChar(120)
+  primary_phone         String?        @db.VarChar(30)
+  secondary_phone       String?        @db.VarChar(30)
+  created_at            DateTime?      @default(now()) @db.DateTime(0)
+  updated_at            DateTime?      @default(now()) @db.DateTime(0)
+  Companies             Companies?     @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "LegalRepresentatives_ibfk_1")
+  DocumentTypes         DocumentTypes? @relation(fields: [document_type_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "LegalRepresentatives_ibfk_2")
+
+  @@index([company_id], map: "company_id")
+  @@index([document_type_id], map: "document_type_id")
+}
+
+model Packages {
+  id                   String                   @id @db.VarChar(36)
+  package_number       String                   @db.VarChar(40)
+  sender_id            String?                  @db.VarChar(36)
+  carrier              String?                  @db.VarChar(36)
+  recipient_name       String?                  @db.VarChar(100)
+  recipient_id         String?                  @db.VarChar(40)
+  recipient_phone      String?                  @db.VarChar(30)
+  size                 Packages_size?
+  weight               Decimal?                 @db.Decimal(10, 2)
+  charge_amount        Decimal?                 @db.Decimal(10, 2)
+  payment_method       Packages_payment_method?
+  security_code        String?                  @db.VarChar(20)
+  requires_id_photo    Boolean?                 @default(false)
+  requires_signature   Boolean?                 @default(false)
+  requires_document    Boolean?                 @default(false)
+  contactless_delivery Boolean?                 @default(false)
+  additional_info      String?                  @db.Text
+  status               Packages_status?
+  received_at          DateTime?                @db.DateTime(0)
+  delivered_at         DateTime?                @db.DateTime(0)
+  id_photo_url         String?                  @db.VarChar(256)
+  signature_url        String?                  @db.VarChar(256)
+  payment_receipt_url  String?                  @db.VarChar(256)
+  created_at           DateTime?                @default(now()) @db.DateTime(0)
+  updated_at           DateTime?                @default(now()) @db.DateTime(0)
+  DeliveryHistory      DeliveryHistory[]
+  GuidePackages        GuidePackages[]
+  Incidents            Incidents[]
+  Senders              Senders?                 @relation(fields: [sender_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Packages_ibfk_1")
+
+  @@index([sender_id], map: "sender_id")
+}
+
+model Roles {
+  id         String    @id @db.VarChar(36)
+  name       String    @db.VarChar(50)
+  created_at DateTime? @default(now()) @db.DateTime(0)
+  updated_at DateTime? @default(now()) @db.DateTime(0)
+  Users      Users[]
+}
+
+model Senders {
+  id         String     @id @db.VarChar(36)
+  name       String     @db.VarChar(100)
+  active     Boolean?   @default(true)
+  created_at DateTime?  @default(now()) @db.DateTime(0)
+  updated_at DateTime?  @default(now()) @db.DateTime(0)
+  Packages   Packages[]
+}
+
+model Users {
+  id                    String            @id @db.VarChar(36)
+  document_type_id      String?           @db.VarChar(36)
+  identification_number String            @db.VarChar(40)
+  first_name            String            @db.VarChar(60)
+  last_name             String            @db.VarChar(60)
+  middle_name           String?           @db.VarChar(60)
+  username              String            @db.VarChar(40)
+  email                 String            @db.VarChar(120)
+  phone                 String?           @db.VarChar(30)
+  avatar_url            String?           @db.VarChar(256)
+  role_id               String?           @db.VarChar(36)
+  password_hash         String            @db.VarChar(255)
+  active                Boolean?          @default(true)
+  created_at            DateTime?         @default(now()) @db.DateTime(0)
+  updated_at            DateTime?         @default(now()) @db.DateTime(0)
+  Companies             Companies[]
+  DeliveryHistory       DeliveryHistory[]
+  Guides                Guides[]
+  Incidents             Incidents[]
+  DocumentTypes         DocumentTypes?    @relation(fields: [document_type_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Users_ibfk_1")
+  Roles                 Roles?            @relation(fields: [role_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Users_ibfk_2")
+
+  @@index([document_type_id], map: "document_type_id")
+  @@index([role_id], map: "role_id")
+}
+
+enum CompanyBillingConfig_billing_type {
+  CONTADO
+  CREDITO
+  OTRO
+}
+
+enum Companies_company_type {
+  PdE
+  Transportista
+}
+
+enum Guides_service_type {
+  EXPRESS
+  REGULAR
+  ECONOMICO
+}
+
+enum Packages_size {
+  XS
+  S
+  M
+  L
+  XL
+  XXL
+  XXXL
+}
+
+enum CompanyBillingConfig_settlement_frequency {
+  DIARIA
+  SEMANAL
+  QUINCENAL
+  MENSUAL
+  OTRO
+}
+
+enum Packages_payment_method {
+  EFECTIVO
+  TARJETA
+  CONTRAREEMBOLSO
+  TRANSFERENCIA
+  OTRO
+}
+
+enum Packages_status {
+  PENDIENTE
+  EN_TRANSITO
+  ENTREGADO
+  CANCELADO
+  RECHAZADO
+  INCIDENCIA
 }
