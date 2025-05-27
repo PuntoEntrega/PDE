@@ -1,14 +1,15 @@
 "use client"
 
+import { useRouter } from "next/navigation"
 import { cn } from "../../../lib/utils"
 import { Sidebar } from "../../Components/Sidebar/Sidebar"
 import { Button } from "@/Components/ui/button"
 import Image from "next/image"
 import { Card } from "@/Components/ui/card"
 import { CheckCircle2, ArrowRight, PackageIcon } from "lucide-react"
-import Link from "next/link"
 
 export default function DashboardPage() {
+  const router = useRouter()
   const steps = [
     {
       id: 1,
@@ -34,7 +35,7 @@ export default function DashboardPage() {
   ]
 
   return (
-    <Sidebar userName="Juan Pérez Araya">
+    <Sidebar userName="Javier Núñez">
       {/* <DashboardContent> */}
         <div className="min-h-full bg-gradient-to-br from-gray-50 to-blue-50/20">
           <div className="max-w-7xl mx-auto px-4 py-8">
@@ -129,7 +130,7 @@ export default function DashboardPage() {
                         {/* Flecha de acción - solo visible en el paso actual */}
                         {step.current && (
                           <div className="flex items-center">
-                            <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center shadow-md hover:shadow-lg hover:bg-blue-700 transition-all cursor-pointer">
+                            <div onClick={() => router.push('/configuration/profile')} className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center shadow-md hover:shadow-lg hover:bg-blue-700 transition-all cursor-pointer">
                               <ArrowRight className="w-5 h-5 text-white" />
                             </div>
                           </div>
@@ -143,10 +144,8 @@ export default function DashboardPage() {
 
             {/* Action Button */}
             <div className="text-center">
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white px-10 py-8 text-lg rounded-xl shadow-md hover:shadow-lg transition-all">
-                <Link className="flex" href={'configuration/profile'}>
+              <Button onClick={() => router.push('/configuration/profile')} className="bg-blue-600 hover:bg-blue-700 text-white px-10 py-8 text-lg rounded-xl shadow-md hover:shadow-lg transition-all">
                   Comenzar configuración
-                </Link>
               </Button>
             </div>
           </div>

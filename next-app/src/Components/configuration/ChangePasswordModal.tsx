@@ -128,7 +128,7 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md bg-white">
         <DialogHeader>
           <DialogTitle className="flex items-center text-xl">
             <LockKeyhole className="mr-2 h-5 w-5 text-blue-600" />
