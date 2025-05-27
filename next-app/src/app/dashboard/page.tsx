@@ -2,11 +2,11 @@
 
 import { cn } from "../../../lib/utils"
 import { Sidebar } from "../../Components/Sidebar/Sidebar"
-import { DashboardContent } from "@/Components/Dashboard/Dashboard"
 import { Button } from "@/Components/ui/button"
 import Image from "next/image"
 import { Card } from "@/Components/ui/card"
 import { CheckCircle2, ArrowRight, PackageIcon } from "lucide-react"
+import Link from "next/link"
 
 export default function DashboardPage() {
   const steps = [
@@ -35,7 +35,7 @@ export default function DashboardPage() {
 
   return (
     <Sidebar userName="Juan Pérez Araya">
-      <DashboardContent>
+      {/* <DashboardContent> */}
         <div className="min-h-full bg-gradient-to-br from-gray-50 to-blue-50/20">
           <div className="max-w-7xl mx-auto px-4 py-8">
             {/* Welcome Section */}
@@ -143,14 +143,14 @@ export default function DashboardPage() {
 
             {/* Action Button */}
             <div className="text-center">
-              <Button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 text-lg rounded-xl shadow-md hover:shadow-lg transition-all">
-                Comenzar configuración
-                <ArrowRight className="ml-2 w-5 h-5" />
+              <Button className="bg-blue-600 hover:bg-blue-700 text-white px-10 py-8 text-lg rounded-xl shadow-md hover:shadow-lg transition-all">
+                <Link className="flex" href={'configuration/profile'}>
+                  Comenzar configuración
+                </Link>
               </Button>
             </div>
           </div>
         </div>
-      </DashboardContent>
     </Sidebar>
   )
 }

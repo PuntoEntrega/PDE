@@ -123,27 +123,10 @@ export function Sidebar({ children, userName }: SidebarProps) {
         )}
       >
         {/* Header */}
-        <header className="h-20 bg-white border-b flex items-center justify-between px-6 shadow-sm z-5">
-          <div className="flex items-center space-x-4">
-            <button className="md:hidden text-gray-600" onClick={toggleSidebar} aria-label="Menú">
-              <Menu size={24} />
-            </button>
-            <h2 className="text-xl font-semibold text-gray-800">Dashboard</h2>
-          </div>
+        <header className="h-20 bg-white border-b flex items-center justify-end px-6 shadow-sm z-5">
+        
 
           <div className="flex items-center space-x-4">
-            {/* Barra de búsqueda */}
-            <div className="relative hidden md:block">
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <Search className="w-5 h-5 text-gray-400" />
-              </div>
-              <input
-                type="text"
-                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-64 pl-10 p-2.5"
-                placeholder="Buscar..."
-              />
-            </div>
-
             {/* Notificaciones */}
             <button className="relative p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
               <Bell className="w-6 h-6" />
