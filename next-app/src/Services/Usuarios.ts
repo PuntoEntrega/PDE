@@ -4,3 +4,5 @@ export async function getUsuarios() {
     if (!res.ok) throw new Error("Error al obtener usuarios");
     return res.json();
   }
+
+

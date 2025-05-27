@@ -1,5 +1,6 @@
 "use client"
 
+import { login } from "@/Services/login"
 import type React from "react"
 import { useState } from "react"
 import { Button } from "@/Components/ui/button"
@@ -26,27 +27,15 @@ export function LoginForm({ onForgotPassword }: LoginFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-
+  
     try {
-      // Validar datos del formulario
       const validatedData = loginSchema.parse(formData)
-
-      // Aquí iría tu lógica de autenticación
-      console.log("Login attempt:", validatedData)
-
-      // Simulación de éxito
+      await login(validatedData)
+  
       showAlert("success", "¡Bienvenido!", "Has iniciado sesión correctamente")
-
-      // Redirigir a la página principal después de un login exitoso
-      setTimeout(() => {
-        window.location.href = "/"
-      }, 1500)
-    } catch (error) {
-      if (error instanceof Error) {
-        showAlert("error", "Error de validación", error.message)
-      } else {
-        showAlert("error", "Error", "Por favor verifica tus datos")
-      }
+      window.location.href = "/dashboard"
+    } catch (error: any) {
+      showAlert("error", "Error de login", error?.response?.data?.error || "Revisa tus datos")
     } finally {
       setIsLoading(false)
     }
