@@ -20,7 +20,7 @@ export default function LoginPage() {
       }}
     >
       {/* Overlay para difuminar el fondo */}
-      <div className="absolute inset-0 bg-white/6 0 backdrop-blur-sm"></div>
+      <div className="absolute inset-0 bg-white/60 backdrop-blur-md"></div>
 
       {/* Contenido principal */}
       <div className="card_Login_Container relative z-10">
