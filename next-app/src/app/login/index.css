@@ -1,0 +1,5 @@
+.card_Login_Container {
+    width: clamp(500px, 30vw, 700px);
+    padding: 25px;
+    background-color: rgba(127, 255, 212, 0);
+}
