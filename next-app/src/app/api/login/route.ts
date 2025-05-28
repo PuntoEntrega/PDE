@@ -6,7 +6,7 @@ import type { NextRequest } from 'next/server'
 import { compare } from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import { serialize } from 'cookie'
-import prisma from '@/lib/prisma';
+import {prisma} from '../../../../lib/prisma';
 
 export async function POST(req: NextRequest) {
   console.log("🔌 DATABASE_URL:", !!process.env.DATABASE_URL)

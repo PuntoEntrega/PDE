@@ -275,12 +275,11 @@ model Senders {
 }
 
 model Users {
-  id                    String            @id @db.VarChar(36)
+  id                    String            @id @default(dbgenerated("(uuid())")) @db.VarChar(36)
   document_type_id      String?           @db.VarChar(36)
   identification_number String            @db.VarChar(40)
   first_name            String            @db.VarChar(60)
   last_name             String            @db.VarChar(60)
-  middle_name           String?           @db.VarChar(60)
   username              String            @db.VarChar(40)
   email                 String            @db.VarChar(120)
   phone                 String?           @db.VarChar(30)

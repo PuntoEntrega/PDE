@@ -4,7 +4,11 @@ import { randomBytes } from "crypto";
 import prisma from "@/lib/prisma";
 
 const SALT_ROUNDS = Number(process.env.SALT_ROUNDS ?? 10);
-const DEFAULT_ROLE_ID = process.env.DEFAULT_ROLE_ID!;
+const DEFAULT_ROLE_ID = process.env.DEFAULT_ROLE_ID;
+
+if (!DEFAULT_ROLE_ID) {
+  throw new Error("❌ DEFAULT_ROLE_ID no está definido en el entorno.");
+}
 
 export async function POST(request: Request) {
   try {
@@ -25,6 +29,14 @@ export async function POST(request: Request) {
       !last_name ||
       (!email && !phone)
     ) {
+      console.warn("⚠️ Campos obligatorios faltantes:", {
+        document_type_id,
+        identification_number,
+        first_name,
+        last_name,
+        email,
+        phone,
+      });
       return new Response(
         JSON.stringify({ error: "Faltan campos obligatorios" }),
         { status: 400, headers: { "Content-Type": "application/json" } }
@@ -34,7 +46,20 @@ export async function POST(request: Request) {
     const tempPassword = randomBytes(4).toString("hex");
     const password_hash = await bcrypt.hash(tempPassword, SALT_ROUNDS);
 
-    await prisma.users.create({
+    const username = email ?? phone ?? "";
+
+    console.log("🟡 Creando usuario con datos:", {
+      document_type_id,
+      identification_number,
+      first_name,
+      last_name,
+      email,
+      phone,
+      username,
+      role_id: DEFAULT_ROLE_ID,
+    });
+
+    const nuevoUsuario = await prisma.users.create({
       data: {
         document_type_id,
         identification_number,
@@ -43,10 +68,12 @@ export async function POST(request: Request) {
         email: email || null,
         phone: phone || null,
         password_hash,
-        username: email ?? phone ?? "",
+        username,
         role_id: DEFAULT_ROLE_ID,
       },
     });
+
+    console.log("✅ Usuario registrado:", nuevoUsuario.id);
 
     const payload =
       process.env.NODE_ENV !== "production"
@@ -58,12 +85,21 @@ export async function POST(request: Request) {
       headers: { "Content-Type": "application/json" },
     });
   } catch (err: any) {
-    console.error("REGISTER ERROR:", err);
-    return new Response(
-      JSON.stringify({
-        error: err instanceof Error ? err.message : String(err)
-      }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
-    );
+  console.error("❌ REGISTER ERROR:");
+  console.dir(err, { depth: null });
+
+  const errorMessage =
+    err instanceof Error
+      ? err.message
+      : typeof err === "object"
+      ? JSON.stringify(err)
+      : String(err);
+
+  return new Response(
+    JSON.stringify({
+      error: errorMessage,
+    }),
+    { status: 500, headers: { "Content-Type": "application/json" } }
+  );
   }
 }
