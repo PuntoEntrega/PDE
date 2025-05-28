@@ -1,6 +1,15 @@
-import axios from "axios"
+// src/Services/login.ts
+import axios from 'axios'
 
-export const login = async (data: { username: string; password: string }) => {
-  const response = await axios.post("/api/login", data)
+export interface LoginCredentials {
+  username: string
+  password: string
+}
+
+export async function login(data: LoginCredentials) {
+  const response = await axios.post('/api/login', data, {
+    // enviamos y aceptamos cookies automáticamente
+    withCredentials: true
+  })
   return response.data
 }

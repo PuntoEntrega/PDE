@@ -3,6 +3,7 @@
 import type React from "react"
 import './index.css'
 
+import logoApp from '../../../public/logo_sin_texto.png'
 import { useState } from "react"
 import Link from "next/link"
 import Icono from '../../../public/Icono.svg'
@@ -56,18 +57,18 @@ export function Sidebar({ children, userName }: SidebarProps) {
         <div className="flex items-center justify-center h-20 border-b border-blue-800/30 flex-shrink-0">
           {isSidebarOpen ? (
             <Link href="/dashboard">
-              <div className="flex items-center bg-white/10 backdrop-blur-sm rounded-xl px-6 py-2.5 hover:bg-white/20 transition-colors">
-                <div className="w-8 h-8 rounded-lg bg-white">
-                  <Image src={Icono} alt="Logo" />
+              <div className="flex items-center bg-white rounded-xl px-6 py-0.5">
+                <div className="w-12 h-15 rounded-lg bg-white">
+                  <Image src={logoApp} alt="Logo" className="centrar p-1" />
                 </div>
-                <span className="ml-3 font-bold text-white">PuntoEntrega</span>
+                <span className="ml-3 font-bold text-orange-700 text-lg font-semibold">PuntoEntrega</span>
               </div>
             </Link>
           ) : (
             <Link href="/dashboard">
               <div className="flex justify-center w-full">
-                <div className={`${isSidebarOpen ? 'w-0 h-0' : 'w-12 h-12 bg-red-0'} rounded-xl bg-white/10 backdrop-hover:bg-white/20blur-sm  transition-colors flex items-center justify-center p-2`}>
-                  <Image src={Icono} alt={'Logo'} className="centrar"/>
+                <div className={`${isSidebarOpen ? 'w-0 h-0' : 'w-12 h-12'} rounded-xl bg-white transition-colors flex items-center justify-center `}>
+                  <Image src={logoApp} alt={'Logo'} className="centrar p-2"/>
                 </div>
               </div>
             </Link>

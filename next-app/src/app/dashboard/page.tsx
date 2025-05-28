@@ -1,5 +1,6 @@
 "use client"
 
+import logoAppConTexto from '../../../public/punto_entrega_logo.png'
 import { useRouter } from "next/navigation"
 import { cn } from "../../../lib/utils"
 import { Sidebar } from "../../Components/Sidebar/Sidebar"
@@ -45,7 +46,7 @@ export default function DashboardPage() {
                 <div className="flex-1 text-center md:text-left mb-6 md:mb-0">
                   <div className="mb-6">
                     <Image
-                      src="/logo.png"
+                      src={logoAppConTexto}
                       alt="Punto Entrega"
                       width={180}
                       height={54}

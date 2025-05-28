@@ -1,51 +1,67 @@
-import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
-import bcrypt from "bcryptjs"
-import jwt from "jsonwebtoken"
+import { Users } from 'lucide-react';
+import { User } from 'lucide-react';
+// src/app/api/login/route.ts
+import { NextResponse } from 'next/server'
+import type { NextRequest } from 'next/server'
+import { compare } from 'bcrypt'
+import jwt from 'jsonwebtoken'
+import { serialize } from 'cookie'
+import prisma from '@/lib/prisma';
 
-export async function POST(request: Request) {
-  const body = await request.json()
-  const { username, password } = body
+export async function POST(req: NextRequest) {
+  console.log("🔌 DATABASE_URL:", !!process.env.DATABASE_URL)
+  try {
+    const { username, password } = await req.json()
 
-  if (!username || !password) {
-    return NextResponse.json({ error: "Faltan credenciales" }, { status: 400 })
+    // 1. Busca el usuario y su rol
+    const user = await prisma.users.findFirst({
+      where: { 
+        OR: [
+          { username },
+          { email: username }
+        ]
+      },
+      include: { Roles: true }
+    })
+    if (!user) return NextResponse.json({ error: 'Usuario no encontrado' }, { status: 401 })
+
+    // 2. Compara contraseña
+    const valid = await compare(password, user.password_hash)
+    console.log(
+      "typeof password:", typeof password,
+      "typeof hash:", typeof user.password_hash
+    );
+    
+    if (!valid) return NextResponse.json({ error: 'Credenciales inválidas' }, { status: 401 })
+
+    // 3. Genera el JWT con info mínima
+    const token = jwt.sign(
+      { sub: user.id, role: user.Roles?.name },
+      JWT_SECRET,
+      { expiresIn: '8h' }
+    )
+
+    // 4. Serializa cookie HTTP-only
+    const cookie = serialize('token', token, {
+      httpOnly: true,
+      path: '/',
+      maxAge: 8 * 60 * 60,    // 8 horas en segundos
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production'
+    })
+
+    // 5. Devuelve respuesta con cookie y redirección opcional
+    return NextResponse.json({ ok: true }, {
+      status: 200,
+      headers: {
+        'Set-Cookie': cookie
+      }
+    })
+  } catch (err: any) {
+    console.error("LOGIN ERROR:", err)
+    return NextResponse.json(
+      { error: err.message || "Error desconocido" },
+      { status: 500 }
+    )
   }
-
-  const user = await prisma.users.findFirst({
-    where: {
-      OR: [{ username }, { email: username }],
-    },
-    include: { Roles: true },
-  })
-
-  if (!user || !user.password_hash) {
-    return NextResponse.json({ error: "Credenciales inválidas" }, { status: 401 })
-  }
-
-  const isValid = await bcrypt.compare(password, user.password_hash)
-
-  if (!isValid) {
-    return NextResponse.json({ error: "Credenciales inválidas" }, { status: 401 })
-  }
-
-  const token = jwt.sign(
-    {
-      id: user.id,
-      username: user.username,
-      role: user.Roles?.name,
-    },
-    process.env.JWT_SECRET!,
-    { expiresIn: "7d" }
-  )
-
-  const response = NextResponse.json({ message: "Login exitoso" })
-  response.cookies.set("session", token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    maxAge: 60 * 60 * 24 * 7, // 7 días
-    path: "/",
-  })
-
-  return response
 }
