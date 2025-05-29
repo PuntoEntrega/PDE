@@ -9,6 +9,9 @@ import Link from "next/link"
 import Icono from '../../../public/Icono.svg'
 import Image from "next/image"
 import { cn } from "../../../lib/utils"
+import { useSession } from "@/hooks/useSession"
+import { useRouter } from "next/navigation"
+
 import {
   Clock,
   Package,
@@ -39,6 +42,10 @@ interface SidebarProps {
 
 export function Sidebar({ children, userName }: SidebarProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
+  const router = useRouter()  
+  ///////////////  Sesión  ////////////////
+  const { session, loading } = useSession()
+  ///////////////  Sesión  ////////////////
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen)

@@ -35,11 +35,16 @@ export async function POST(req: NextRequest) {
     if (!valid) return NextResponse.json({ error: 'Credenciales inválidas' }, { status: 401 })
 
     // 3. Genera el JWT con info mínima
+    const JWT_SECRET = process.env.JWT_SECRET;
+    if (!JWT_SECRET) {
+      throw new Error("❌ JWT_SECRET no está definido en el entorno.");
+    }
+
     const token = jwt.sign(
       { sub: user.id, role: user.Roles?.name },
       JWT_SECRET,
       { expiresIn: '8h' }
-    )
+    );
 
     // 4. Serializa cookie HTTP-only
     const cookie = serialize('token', token, {

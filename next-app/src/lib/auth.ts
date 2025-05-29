@@ -1,3 +1,6 @@
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// 1.
+// /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 import { z } from "zod"
 
 export const registerSchema = z
@@ -17,3 +20,36 @@ export const registerSchema = z
   )
 
 export type RegisterFormData = z.infer<typeof registerSchema>
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// 2. Login Schema
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+import { cookies } from 'next/headers'
+import jwt from 'jsonwebtoken'
+
+interface SessionPayload {
+  sub: string
+  role: string
+  first_name: string
+  last_name: string
+  email: string
+}
+
+export function getSession(): SessionPayload | null {
+  const cookieStore = cookies()
+  const token = cookieStore.get('token')?.value
+  if (!token) return null
+
+  const JWT_SECRET = process.env.JWT_SECRET
+  if (!JWT_SECRET) throw new Error("❌ JWT_SECRET no definido")
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET)
+    return decoded as SessionPayload
+  } catch (err) {
+    console.error("❌ Sesión inválida:", err)
+    return null
+  }
+}

@@ -1,12 +1,15 @@
 // src/app/page.tsx
-import Link from "next/link";
-import { useState } from 'react';
+import { redirect } from "next/navigation"
+import { getSession } from "@/lib/auth" // función server-side
 
-export default function Home() {
-  return (
-    <>
-      <h1>Página principalll</h1>
-      <Link href="/usuarios">Ir a Usuarios</Link>
-    </>
-  );
+export default async function Home() {
+  const session = await getSession() // ✅ esto sí es válido en server
+
+  if (session) {
+    redirect("/dashboard") // o el dashboard según el rol si quieres
+  } else {
+    redirect("/login")
+  }
+
+  return null
 }
