@@ -1,5 +1,7 @@
 "use client"
 
+import logoApp from '../../../public/punto_entrega_logo.png'
+import { login } from '@/Services/Login'
 import type React from "react"
 import { useState } from "react"
 import { Button } from "@/Components/ui/button"
@@ -9,6 +11,8 @@ import { Eye, EyeOff } from "lucide-react"
 import Image from "next/image"
 import { useAlert } from "@/Components/alerts/use-alert"
 import { loginSchema, type LoginFormData } from "../../../lib/validations/auth"
+import { useRouter } from "next/navigation"
+
 
 interface LoginFormProps {
   onForgotPassword: () => void
@@ -22,31 +26,20 @@ export function LoginForm({ onForgotPassword }: LoginFormProps) {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const { showAlert } = useAlert()
+  const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-
+  
     try {
-      // Validar datos del formulario
       const validatedData = loginSchema.parse(formData)
-
-      // Aquí iría tu lógica de autenticación
-      console.log("Login attempt:", validatedData)
-
-      // Simulación de éxito
+      await login(validatedData)
+  
       showAlert("success", "¡Bienvenido!", "Has iniciado sesión correctamente")
-
-      // Redirigir a la página principal después de un login exitoso
-      setTimeout(() => {
-        window.location.href = "/"
-      }, 1500)
-    } catch (error) {
-      if (error instanceof Error) {
-        showAlert("error", "Error de validación", error.message)
-      } else {
-        showAlert("error", "Error", "Por favor verifica tus datos")
-      }
+      router.push('/dashboard')
+    } catch (error: any) {
+      showAlert("error", "Error de login", error?.response?.data?.error || "Revisa tus datos")
     } finally {
       setIsLoading(false)
     }
@@ -57,7 +50,7 @@ export function LoginForm({ onForgotPassword }: LoginFormProps) {
       <CardContent className="p-8">
         {/* Logo oficial de Punto Entrega */}
         <div className="flex justify-center mb-6">
-          <Image src="/logo.png" alt="Punto Entrega" width={200} height={60} className="h-auto" />
+          <Image src={logoApp} alt="Punto Entrega" width={200} height={60} className="h-auto" />
         </div>
 
         <h1 className="text-lg font-medium text-gray-800 text-center mb-6">Accede a tu Punto de Entrega</h1>
@@ -70,7 +63,7 @@ export function LoginForm({ onForgotPassword }: LoginFormProps) {
               placeholder="Escribe tu usuario o correo electrónico"
               value={formData.username}
               onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-              className="w-full h-12 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-blue-500"
+              className="w-full h-12 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-blue"
               disabled={isLoading}
             />
           </div>
@@ -80,7 +73,7 @@ export function LoginForm({ onForgotPassword }: LoginFormProps) {
             <div className="relative">
               <Input
                 type={showPassword ? "text" : "password"}
-                placeholder="••••••••"
+                placeholder="••••••"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                 className="w-full h-12 border-gray-200 rounded-lg focus:border-blue-500 focus:ring-blue-500 pr-10"
@@ -109,13 +102,23 @@ export function LoginForm({ onForgotPassword }: LoginFormProps) {
 
           <Button
             type="submit"
-            className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
+            className="w-full h-12 bg-blue-700 hover:bg-blue-600 text-white font-medium rounded-lg transition-colors"
             disabled={isLoading}
           >
             {isLoading ? "Ingresando..." : "Ingresar"}
           </Button>
+        <div className="text-center pt-4">
+            <div className="text-sm text-gray-600">
+              ¿No tienes una cuenta?{" "}
+              <div onClick={() => router.push('/register')} className="text-blue-600 hover:text-blue-700 font-medium hover:underline cursor-pointer">
+                Regístrate aquí
+              </div>
+            </div>
+          </div>
         </form>
       </CardContent>
     </Card>
   )
 }
+
+

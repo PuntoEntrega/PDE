@@ -10,3 +10,7 @@ body {
 .centrar {
     margin: 0 auto;
 }
+
+.color_global {
+    background-color: #1a2b57;
+}
