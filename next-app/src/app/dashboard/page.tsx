@@ -11,6 +11,7 @@ import { CheckCircle2, ArrowRight, PackageIcon } from "lucide-react"
 
 export default function DashboardPage() {
   const router = useRouter()
+  
   const steps = [
     {
       id: 1,
@@ -36,7 +37,7 @@ export default function DashboardPage() {
   ]
 
   return (
-    <Sidebar userName="Javier Núñez">
+    <Sidebar>
       {/* <DashboardContent> */}
         <div className="min-h-full bg-gradient-to-br from-gray-50 to-blue-50/20">
           <div className="max-w-7xl mx-auto px-4 py-8">

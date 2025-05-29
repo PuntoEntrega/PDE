@@ -7,9 +7,9 @@ export interface LoginCredentials {
 }
 
 export async function login(data: LoginCredentials) {
-  const response = await axios.post('/api/login', data, {
-    // enviamos y aceptamos cookies automáticamente
-    withCredentials: true
-  })
-  return response.data
+  const response = await axios.post('/api/login', data)
+  const token = response.data.token
+  localStorage.setItem('token', token) // ✅ Guardalo localmente
+
+  return token
 }
