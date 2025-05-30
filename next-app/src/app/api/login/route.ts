@@ -41,11 +41,16 @@ export async function POST(req: NextRequest) {
     }
 
     const token = jwt.sign(
-      { sub: user.id, role: user.Roles?.name },
+      { sub: user.id, role: user.Roles?.name, document_type_id: user.document_type_id,
+        first_name: user.first_name, last_name: user.last_name, username: user.username,
+        email: user.email, phone: user.phone, avatar_url: user.avatar_url, active: user.active,
+        created_at: user.created_at, updated_at: user.updated_at, identification_number: user.identification_number },
       JWT_SECRET,
       { expiresIn: '8h' }
     );
 
+
+  
     // 4. Serializa cookie HTTP-only
     const cookie = serialize('token', token, {
       httpOnly: true,
@@ -55,13 +60,8 @@ export async function POST(req: NextRequest) {
       secure: process.env.NODE_ENV === 'production'
     })
 
-    // 5. Devuelve respuesta con cookie y redirección opcional
-    return NextResponse.json({ ok: true }, {
-      status: 200,
-      headers: {
-        'Set-Cookie': cookie
-      }
-    })
+    // 5. Devuelve el token directamente en el body
+    return NextResponse.json({ token }, { status: 200 })
   } catch (err: any) {
     console.error("LOGIN ERROR:", err)
     return NextResponse.json(

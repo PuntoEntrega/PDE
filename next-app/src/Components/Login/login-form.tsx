@@ -120,5 +120,3 @@ export function LoginForm({ onForgotPassword }: LoginFormProps) {
     </Card>
   )
 }
-
-

@@ -35,15 +35,15 @@ export function ProfileConfigForm({ onSave, onNext, onChangePassword, isSaving }
   const [formData, setFormData] = useState({
     tipoId: "cedula-fisica",
     identificacion: "1.2345.6789",
-    nombre: "Juan",
-    primerApellido: "Pérez",
+    nombre: "Nombre",
+    primerApellido: "Apellidos",
     segundoApellido: "Araya",
-    idEmpleado: "DueNo123",
-    cargo: "gerente",
-    perfil: "super-admin",
-    empresa: "ampm",
-    correo: "jperez@ampm.cr",
-    telefono: "1234-5678",
+    idEmpleado: "ID empleado",
+    cargo: "Cargo",
+    perfil: "Perfil",
+    empresa: "Empresa",
+    correo: "Correo",
+    telefono: "Telefono",
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [touched, setTouched] = useState<Record<string, boolean>>({})
