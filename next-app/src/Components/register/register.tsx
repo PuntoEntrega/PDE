@@ -96,12 +96,11 @@ export function RegisterForm() {
     }
     setIsLoading(true)
     try {
-      const { ok, tempPassword } = await register(formData)
+      const { ok } = await register(formData)
       if (ok) {
         showAlert(
           "success",
-          "¡Registro exitoso!",
-          `Tu contraseña temporal es: ${tempPassword}`
+          "¡Registro exitoso!"
         )
         setTimeout(() => router.push("/login"), 3000)
       } else {
@@ -202,7 +201,7 @@ export function RegisterForm() {
                 <Input
                   name="first_name"
                   type="text"
-                  placeholder="Juan"
+                  placeholder="Nombre"
                   value={formData.first_name}
                   onChange={handleChange}
                   onBlur={handleBlur}
@@ -227,7 +226,7 @@ export function RegisterForm() {
               <Input
                 name="last_name"
                 type="text"
-                placeholder="Pérez"
+                placeholder="Apellido"
                 value={formData.last_name}
                 onChange={handleChange}
                 onBlur={handleBlur}
@@ -251,9 +250,6 @@ export function RegisterForm() {
             <div>
               <label className="block text-sm font-medium mb-1">
                 Correo electrónico{" "}
-                <span className="text-gray-400 text-xs">
-                  (opcional si tienes teléfono)
-                </span>
               </label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -278,7 +274,7 @@ export function RegisterForm() {
               <label className="block text-sm font-medium mb-1">
                 Teléfono{" "}
                 <span className="text-gray-400 text-xs">
-                  (opcional si tienes correo)
+                  (Opcional)
                 </span>
               </label>
               <div className="relative">
