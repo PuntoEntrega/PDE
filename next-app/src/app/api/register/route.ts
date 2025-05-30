@@ -1,7 +1,8 @@
-// src/app/api/register/route.ts
 import bcrypt from "bcrypt";
 import { randomBytes } from "crypto";
 import prisma from "@/lib/prisma";
+import { sendEmailWithMandrill } from "@/lib/messaging/email";
+import { sendSMS } from "@/lib/messaging/sms";
 
 const SALT_ROUNDS = Number(process.env.SALT_ROUNDS ?? 10);
 const DEFAULT_ROLE_ID = process.env.DEFAULT_ROLE_ID;
@@ -45,19 +46,7 @@ export async function POST(request: Request) {
 
     const tempPassword = randomBytes(4).toString("hex");
     const password_hash = await bcrypt.hash(tempPassword, SALT_ROUNDS);
-
     const username = email ?? phone ?? "";
-
-    console.log("🟡 Creando usuario con datos:", {
-      document_type_id,
-      identification_number,
-      first_name,
-      last_name,
-      email,
-      phone,
-      username,
-      role_id: DEFAULT_ROLE_ID,
-    });
 
     const nuevoUsuario = await prisma.users.create({
       data: {
@@ -73,11 +62,19 @@ export async function POST(request: Request) {
       },
     });
 
-    console.log("✅ Usuario registrado:", nuevoUsuario.id);
+    // 🔔 Envío de la contraseña temporal
+    const fullName = `${first_name} ${last_name}`;
+    const message = `Hola ${fullName}, tu contraseña temporal es: ${tempPassword}`;
+
+    if (email) {
+      await sendEmailWithMandrill(email, "Tu acceso a Punto Entrega", message);
+    } else if (phone) {
+      await sendSMS(phone, message);
+    }
 
     const payload =
       process.env.NODE_ENV !== "production"
-        ? { ok: true, tempPassword }
+        ? { ok: true }
         : { ok: true };
 
     return new Response(JSON.stringify(payload), {
@@ -85,21 +82,19 @@ export async function POST(request: Request) {
       headers: { "Content-Type": "application/json" },
     });
   } catch (err: any) {
-  console.error("❌ REGISTER ERROR:");
-  console.dir(err, { depth: null });
+    console.error("❌ REGISTER ERROR:");
+    console.dir(err, { depth: null });
 
-  const errorMessage =
-    err instanceof Error
-      ? err.message
-      : typeof err === "object"
-      ? JSON.stringify(err)
-      : String(err);
+    const errorMessage =
+      err instanceof Error
+        ? err.message
+        : typeof err === "object"
+        ? JSON.stringify(err)
+        : String(err);
 
-  return new Response(
-    JSON.stringify({
-      error: errorMessage,
-    }),
-    { status: 500, headers: { "Content-Type": "application/json" } }
-  );
+    return new Response(
+      JSON.stringify({ error: errorMessage }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
+    );
   }
 }
