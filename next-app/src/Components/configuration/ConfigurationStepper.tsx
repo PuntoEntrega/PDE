@@ -1,3 +1,5 @@
+"use client"
+
 import { CheckCircle, User, Building2, Users } from "lucide-react"
 import { cn } from "../../../lib/utils"
 import Link from "next/link"
@@ -34,73 +36,76 @@ export function ConfigurationStepper({ currentStep }: ConfigurationStepperProps)
 
   return (
     <TooltipProvider>
-      <nav aria-label="Progress" className="py-4">
-        <ol className="flex items-center justify-between w-full">
+      <nav aria-label="Progress" className="py-4 bg-white rounded-xl shadow-lg">
+        <ol role="list" className="flex items-start justify-around px-2 sm:px-4">
           {steps.map((step, stepIdx) => (
-            <li key={step.name} className={cn("relative", stepIdx !== steps.length - 1 ? "pr-8 sm:pr-20" : "")}>
-              <div className="flex flex-col items-center group">
-                {/* Line between steps */}
-                {stepIdx !== steps.length - 1 && (
-                  <div className="absolute top-1/2 w-full h-0.5 -translate-y-1/2 bg-gray-200 left-0 transform translate-x-1/2">
-                    <div
-                      className={cn(
-                        "h-full bg-blue-600 transition-all duration-500",
-                        currentStep > step.id ? "w-full" : "w-0",
-                      )}
-                    ></div>
-                  </div>
-                )}
+            <li key={step.name} className="relative flex-1 flex flex-col items-center group">
+              {/* Line connecting steps - adjusted for better visual */}
+              {stepIdx > 0 && (
+                <div
+                  aria-hidden="true"
+                  className="absolute left-0 top-[1.875rem] h-0.5 w-full -translate-x-1/2 transform"
+                >
+                  <div
+                    className={cn(
+                      "h-full transition-colors duration-300",
+                      currentStep > step.id ? "bg-blue-600" : "bg-gray-200",
+                    )}
+                  />
+                </div>
+              )}
 
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="relative flex items-center justify-center">
-                      <Link
-                        href={step.href}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Link href={step.href} className="flex flex-col items-center text-center no-underline">
+                    <div className="relative z-10">
+                      <div
                         className={cn(
-                          "h-14 w-14 rounded-full flex items-center justify-center text-white transition-all duration-200",
+                          "w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center border-2 transition-all duration-300",
                           currentStep === step.id
-                            ? "bg-blue-600 ring-4 ring-blue-100 shadow-md"
+                            ? "bg-blue-600 border-blue-600 shadow-blue-300/50 shadow-lg"
                             : currentStep > step.id
-                              ? "bg-blue-600"
-                              : "bg-gray-300 hover:bg-gray-400",
+                              ? "bg-blue-600 border-blue-600"
+                              : "bg-white border-gray-300 group-hover:border-gray-400",
                         )}
                       >
                         {currentStep > step.id ? (
-                          <CheckCircle className="w-6 h-6" />
+                          <CheckCircle className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
                         ) : (
-                          <step.icon className="w-6 h-6" />
+                          <step.icon
+                            className={cn(
+                              "w-6 h-6 sm:w-7 sm:h-7 transition-colors duration-300",
+                              currentStep === step.id ? "text-white" : "text-gray-500 group-hover:text-gray-700",
+                            )}
+                          />
                         )}
-                      </Link>
-
-                      {/* Indicador de paso actual */}
+                      </div>
+                      {/* Current step indicator */}
                       {currentStep === step.id && (
-                        <span className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-3 h-3 bg-blue-600 rounded-full border-2 border-white animate-pulse"></span>
+                        <div className="absolute -bottom-1.5 left-1/2 transform -translate-x-1/2">
+                          <div className="w-3 h-3 bg-blue-600 rounded-full border-2 border-white animate-pulse"></div>
+                        </div>
                       )}
                     </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <div className="text-sm">
-                      <p className="font-medium">{step.name}</p>
-                      <p className="text-xs text-gray-500">{step.description}</p>
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-
-                <div className="mt-3 flex flex-col items-center">
-                  <span
-                    className={cn(
-                      "text-xs font-medium text-center",
-                      currentStep === step.id
-                        ? "text-blue-600"
-                        : currentStep > step.id
+                    <p
+                      className={cn(
+                        "mt-2.5 text-xs sm:text-sm font-medium transition-colors duration-300 max-w-[120px] sm:max-w-[150px]",
+                        currentStep === step.id
                           ? "text-blue-600"
-                          : "text-gray-500",
-                    )}
-                  >
-                    {step.name}
-                  </span>
-                </div>
-              </div>
+                          : currentStep > step.id
+                            ? "text-blue-600"
+                            : "text-gray-500 group-hover:text-gray-700",
+                      )}
+                    >
+                      {step.name}
+                    </p>
+                  </Link>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="text-center">
+                  <p className="font-semibold">{step.name}</p>
+                  <p className="text-xs text-gray-500">{step.description}</p>
+                </TooltipContent>
+              </Tooltip>
             </li>
           ))}
         </ol>

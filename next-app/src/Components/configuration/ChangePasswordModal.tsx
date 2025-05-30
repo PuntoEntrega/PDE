@@ -10,6 +10,7 @@ import { Label } from "@/Components/ui/label"
 import { Eye, EyeOff, Loader2, LockKeyhole, AlertCircle, CheckCircle } from "lucide-react"
 import { useToast } from "@/Components/ui/use-toast"
 import { z } from "zod"
+import { useUser } from "@/context/UserContext"
 
 interface ChangePasswordModalProps {
   isOpen: boolean
@@ -47,6 +48,7 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [passwordStrength, setPasswordStrength] = useState(0)
   const { toast } = useToast()
+  const user = useUser()
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -90,28 +92,58 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
     if (!validateForm()) return
 
     setIsSubmitting(true)
+    try {
+      const res = await fetch(
+        `/api/users/${user?.sub}/change-password`,
+        {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            currentPassword: formData.currentPassword,
+            newPassword: formData.newPassword,
+          }),
+        }
+      )
 
-    // Simulación de cambio de contraseña
-    setTimeout(() => {
-      setIsSubmitting(false)
+      const data = await res.json()
+      if (!res.ok) {
+        // si 401 => contraseña actual incorrecta
+        if (res.status === 401) {
+          setErrors({ currentPassword: data.message })
+        } else {
+          toast({
+            title: 'Error',
+            description: data.message || 'Algo salió mal',
+            variant: 'destructive',
+          })
+        }
+      } else {
+        toast({
+          title: '¡Listo!',
+          description: 'La contraseña se actualizó correctamente.',
+          variant: 'success',
+        })
+        onClose()
+        setFormData({
+          currentPassword: '',
+          newPassword: '',
+          confirmPassword: '',
+        })
+        setPasswordStrength(0)
+      }
+    } catch (err) {
+      console.error(err)
       toast({
-        title: "Contraseña actualizada",
-        description: "Tu contraseña ha sido actualizada correctamente.",
-        variant: "success",
+        title: 'Error de red',
+        description: 'No se pudo conectar al servidor.',
+        variant: 'destructive',
       })
-      onClose()
-      // Resetear el formulario
-      setFormData({
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: "",
-      })
-      setPasswordStrength(0)
-    }, 1500)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const getStrengthColor = () => {
@@ -204,13 +236,12 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
                 <div className="flex justify-between items-center mb-1">
                   <span className="text-xs text-gray-500">Fuerza de la contraseña:</span>
                   <span
-                    className={`text-xs font-medium ${
-                      passwordStrength <= 2
+                    className={`text-xs font-medium ${passwordStrength <= 2
                         ? "text-red-500"
                         : passwordStrength <= 3
                           ? "text-yellow-500"
                           : "text-green-500"
-                    }`}
+                      }`}
                   >
                     {getStrengthText()}
                   </span>
@@ -218,7 +249,7 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
                 <div className="h-1.5 w-full bg-gray-200 rounded-full overflow-hidden">
                   <div
                     className={`h-full ${getStrengthColor()} transition-all duration-300`}
-                    style={`{ width: ${(passwordStrength / 5) * 100}% }`}
+                    style={{ width: `${(passwordStrength / 5) * 100}%` }}
                   ></div>
                 </div>
 

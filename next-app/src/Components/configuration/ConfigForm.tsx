@@ -1,55 +1,141 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect, use } from "react"
 import Image from "next/image"
 import { Button } from "@/Components/ui/button"
 import { Input } from "@/Components/ui/input"
-import { Camera, LockKeyhole, User, Mail, Phone, Shield, CreditCard, Save, ArrowRight, Loader2, X } from "lucide-react"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/Components/ui/select"
+import {
+  Camera,
+  LockKeyhole,
+  User,
+  Mail,
+  Phone,
+  Shield,
+  CreditCard,
+  Save,
+  ArrowRight,
+  Loader2,
+  X,
+  Briefcase,
+  AtSign,
+} from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/Components/ui/tooltip"
 import { useToast } from "@/Components/ui/use-toast"
 import { z } from "zod"
+import { useUser } from "@/context/UserContext"
+import { useRouter } from "next/navigation"
 
 interface ProfileConfigFormProps {
   onSave: () => Promise<void>
   onNext: () => void
   onChangePassword: () => void
   isSaving: boolean
+  userData?: UserData // Datos del usuario que vienen de la BD
 }
+
+// Simulación de datos del usuario que vendrían de la BD
+interface UserData {
+  document_type_id: string
+  identification_number: string
+  first_name: string
+  last_name: string
+  username: string
+  email: string
+  phone?: string
+  avatar_url?: string
+  role_id: string
+  // Campos adicionales que no se muestran pero podrían ser útiles
+  company_name?: string
+}
+
+interface DecodedToken {
+  sub: string
+  role: string
+  first_name: string
+  last_name: string
+  email: string
+  active: boolean
+  exp: number
+  iat: number
+  [key: string]: any
+}
+
+
 
 // Esquema de validación
 const profileSchema = z.object({
-  nombre: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
-  primerApellido: z.string().min(2, "El primer apellido debe tener al menos 2 caracteres"),
-  segundoApellido: z.string().optional(),
-  idEmpleado: z.string().min(3, "El ID de empleado debe tener al menos 3 caracteres"),
-  correo: z.string().email("Correo electrónico inválido"),
-  telefono: z.string().regex(/^\d{4}-\d{4}$/, "Formato inválido. Ej: 1234-5678"),
-  identificacion: z.string().min(9, "La identificación debe tener al menos 9 caracteres"),
+  username: z.string().min(3, "El nombre de usuario debe tener al menos 3 caracteres"),
+  email: z.string().email("Correo electrónico inválido"),
+  phone: z
+    .string()
+    .regex(/^(\d{4}\d{4})?$/, "Formato inválido. Ej: 12345678 o vacío")
+    .optional()
+    .or(z.literal("")),
 })
 
-export function ProfileConfigForm({ onSave, onNext, onChangePassword, isSaving }: ProfileConfigFormProps) {
+
+export function ProfileConfigForm({
+  onSave,
+  onNext,
+  onChangePassword,
+  isSaving,
+  userData: initialUserData, // Renombrar para claridad
+}: ProfileConfigFormProps) {
+  // Simulación de datos del usuario si no se proporcionan
+  const defaultUserData: UserData = {
+    document_type_id: "Cédula Física Nacional",
+    identification_number: "1-2345-6789",
+    first_name: "Juan",
+    last_name: "Pérez Araya",
+    username: "juan.perez",
+    email: "juan.perez@example.com",
+    phone: "8888-8888",
+    avatar_url: "/placeholder.svg?height=128&width=128",
+    role_id: "Super Admin",
+    company_name: "AMPM",
+  }
+
+  const currentUserData = initialUserData || defaultUserData
+
   const [profileImage, setProfileImage] = useState<string | null>(null)
   const [isUploading, setIsUploading] = useState(false)
-  const [formData, setFormData] = useState({
-    tipoId: "cedula-fisica",
-    identificacion: "1.2345.6789",
-    nombre: "Nombre",
-    primerApellido: "Apellidos",
-    segundoApellido: "Araya",
-    idEmpleado: "ID empleado",
-    cargo: "Cargo",
-    perfil: "Perfil",
-    empresa: "Empresa",
-    correo: "Correo",
-    telefono: "Telefono",
-  })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [touched, setTouched] = useState<Record<string, boolean>>({})
   const { toast } = useToast()
+  const user = useUser()
+  const router = useRouter()
+  const [formData, setFormData] = useState({
+    username: "",
+    email: "",
+    phone: "",
+  })
 
-  // Validar campo cuando cambia
+  console.log(formData);
+
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        username: user.username || "",
+        email: user.email || "",
+        phone: user.phone || "",
+      });
+      setProfileImage(user.avatar_url || null);
+    }
+  }, [user]);
+
+  // Cargar datos del usuario cuando el componente se monta o los datos iniciales cambian
+  useEffect(() => {
+    if (initialUserData) {
+      setFormData({
+        username: initialUserData.username,
+        email: initialUserData.email,
+        phone: initialUserData.phone || "",
+      })
+      setProfileImage(initialUserData.avatar_url || null)
+    }
+  }, [initialUserData])
+
   const validateField = (name: string, value: string) => {
     try {
       profileSchema.shape[name as keyof typeof profileSchema.shape]?.parse(value)
@@ -65,82 +151,58 @@ export function ProfileConfigForm({ onSave, onNext, onChangePassword, isSaving }
     }
   }
 
-  // Manejar cambios en los inputs
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
-
     if (touched[name]) {
       validateField(name, value)
     }
   }
 
-  // Marcar campo como tocado cuando pierde el foco
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setTouched((prev) => ({ ...prev, [name]: true }))
     validateField(name, value)
   }
 
-  const handleSelectChange = (name: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [name]: value }))
+const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (file) {
+    setIsUploading(true);
+    const imageUrl = URL.createObjectURL(file);
+
+    // Solo para mostrar un efecto visual de carga breve
+    setTimeout(() => {
+      setProfileImage(imageUrl);
+      setIsUploading(false);
+      toast({
+        title: "Imagen seleccionada",
+        description: "Será cargada al guardar los cambios.",
+        variant: "default",
+      });
+    }, 1200);
   }
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) {
-      setIsUploading(true)
-
-      // Simulación de carga
-      setTimeout(() => {
-        const imageUrl = URL.createObjectURL(file)
-        setProfileImage(imageUrl)
-        setIsUploading(false)
-
-        toast({
-          title: "Imagen actualizada",
-          description: "Tu foto de perfil ha sido actualizada correctamente.",
-          variant: "success",
-        })
-      }, 1500)
-    }
-  }
+};
 
   const handleRemoveImage = () => {
     setProfileImage(null)
     toast({
       title: "Imagen eliminada",
       description: "Tu foto de perfil ha sido eliminada.",
-      variant: "default",
     })
+    // Aquí llamarías a una función para eliminar `avatar_url` de la BD
   }
 
-  // Validar formulario completo
   const validateForm = () => {
-    const newErrors: Record<string, string> = {}
-    let isValid = true
-
-    Object.entries(formData).forEach(([key, value]) => {
-      if (key in profileSchema.shape) {
-        try {
-          profileSchema.shape[key as keyof typeof profileSchema.shape]?.parse(value)
-        } catch (error) {
-          if (error instanceof z.ZodError) {
-            newErrors[key] = error.errors[0]?.message || "Campo inválido"
-            isValid = false
-          }
+    const result = profileSchema.safeParse(formData)
+    if (!result.success) {
+      const newErrors: Record<string, string> = {}
+      result.error.errors.forEach((err) => {
+        if (err.path[0]) {
+          newErrors[err.path[0] as string] = err.message
         }
-      }
-    })
-
-    setErrors(newErrors)
-    return isValid
-  }
-
-  const handleSave = async () => {
-    if (validateForm()) {
-      await onSave()
-    } else {
+      })
+      setErrors(newErrors)
       // Marcar todos los campos como tocados para mostrar errores
       const allTouched = Object.keys(formData).reduce(
         (acc, key) => {
@@ -149,20 +211,80 @@ export function ProfileConfigForm({ onSave, onNext, onChangePassword, isSaving }
         },
         {} as Record<string, boolean>,
       )
-
       setTouched(allTouched)
+      return false
+    }
+    setErrors({})
+    return true
+  }
 
+  const handlePatchUser = async () => {
+    const form = new FormData();
+    form.append("username", formData.username);
+    form.append("email", formData.email);
+    form.append("phone", formData.phone);
+
+    // 👇 Captura el archivo si se seleccionó una nueva imagen
+    const fileInput = document.getElementById("profile-photo") as HTMLInputElement;
+    const file = fileInput?.files?.[0];
+    if (file) {
+      form.append("avatar", file);
+    }
+
+    const res = await fetch(`/api/users/${user.sub}`, {
+      method: "PATCH",
+      body: form,
+    });
+
+    if (!res.ok) {
+      throw new Error("Error actualizando el usuario");
+    }
+
+    return await res.json();
+  };
+
+  const handleSave = async () => {
+    if (validateForm()) {
+      try {
+        await handlePatchUser();
+
+        toast({
+          title: "Usuario actualizado",
+          description: "Los cambios se guardaron correctamente.",
+          variant: "success",
+        });
+
+        await onSave(); // esto refresca contexto u otros efectos externos
+      } catch (error) {
+        console.error(error);
+        toast({
+          title: "Error al guardar",
+          description: "Hubo un problema al actualizar tu perfil.",
+          variant: "destructive",
+        });
+      }
+    } else {
       toast({
         title: "Error de validación",
-        description: "Por favor, revisa los campos marcados en rojo.",
+        description: "Por favor, revisa los campos marcados.",
         variant: "destructive",
-      })
+      });
     }
-  }
+  };
+
+  const FormField = ({ label, value, icon: Icon }: { label: string; value: string; icon?: React.ElementType }) => (
+    <div>
+      <label className="block text-xs font-medium text-gray-500 mb-0.5">{label}</label>
+      <div className="flex items-center h-10 bg-gray-100 border border-gray-200 rounded-md px-3">
+        {Icon && <Icon className="h-4 w-4 text-gray-400 mr-2" />}
+        <span className="text-sm text-gray-700 truncate">{value}</span>
+      </div>
+    </div>
+  )
 
   return (
     <div className="p-6">
-      <div className="space-y-8">
+      <div className="space-y-6">
         {/* Foto de Perfil */}
         <div className="bg-gray-50 p-6 rounded-lg border border-gray-100">
           <h3 className="text-lg font-medium text-gray-700 mb-4 flex items-center">
@@ -186,7 +308,7 @@ export function ProfileConfigForm({ onSave, onNext, onChangePassword, isSaving }
                     />
                     <button
                       onClick={handleRemoveImage}
-                      className="absolute top-0 right-0 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors"
+                      className="absolute top-0 right-0 bg-red-500 text-white p-1 rounded-full hover:bg-red-600 transition-colors shadow-sm"
                       aria-label="Eliminar foto"
                     >
                       <X className="h-4 w-4" />
@@ -194,7 +316,7 @@ export function ProfileConfigForm({ onSave, onNext, onChangePassword, isSaving }
                   </>
                 ) : (
                   <Image
-                    src="/placeholder.svg?height=128&width=128&query=sonriente%20hombre%20latino%20profesional"
+                    src="/placeholder.svg?height=128&width=128"
                     alt="Foto de perfil"
                     fill
                     className="object-cover"
@@ -229,221 +351,83 @@ export function ProfileConfigForm({ onSave, onNext, onChangePassword, isSaving }
           </div>
         </div>
 
-        {/* Datos Personales */}
+        {/* Datos Personales (No Editables) */}
         <div className="bg-gray-50 p-6 rounded-lg border border-gray-100">
           <h3 className="text-lg font-medium text-gray-700 mb-4 flex items-center">
             <CreditCard className="mr-2 h-5 w-5 text-blue-500" />
-            Datos Personales
+            Información Personal
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label htmlFor="tipoId" className="block text-sm font-medium text-gray-700 mb-1">
-                Tipo de identificación
-              </label>
-              <Select defaultValue={formData.tipoId} onValueChange={(value) => handleSelectChange("tipoId", value)}>
-                <SelectTrigger className="w-full h-10 bg-white border-gray-200 focus:ring-blue-500 focus:border-blue-500">
-                  <SelectValue placeholder="Seleccionar tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="cedula-fisica">Cédula Física Nacional</SelectItem>
-                  <SelectItem value="cedula-juridica">Cédula Jurídica</SelectItem>
-                  <SelectItem value="pasaporte">Pasaporte</SelectItem>
-                  <SelectItem value="dimex">DIMEX</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-4">
+            <FormField label="Nombre Completo" value={`${user?.first_name} ${user?.last_name}`} />
+            <FormField label="Tipo de Identificación" value={user?.document_type_id} />
+            <FormField label="Número de Identificación" value={user?.identification_number} />
+            <FormField label="Rol de Usuario" value={user?.role} icon={Briefcase} />
+          </div>
+        </div>
 
+        {/* Datos Editables */}
+        <div className="bg-gray-50 p-6 rounded-lg border border-gray-100">
+          <h3 className="text-lg font-medium text-gray-700 mb-4 flex items-center">
+            <AtSign className="mr-2 h-5 w-5 text-blue-500" />
+            Información de Contacto y Usuario
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-4">
             <div>
-              <label htmlFor="identificacion" className="block text-sm font-medium text-gray-700 mb-1">
-                Número de identificación
+              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-1">
+                Nombre de usuario <span className="text-red-500">*</span>
               </label>
               <Input
-                id="identificacion"
-                name="identificacion"
+                id="username"
+                name="username"
                 type="text"
-                placeholder="1.2345.6789"
-                className={`w-full h-10 bg-white border-gray-200 focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.identificacion && touched.identificacion
-                    ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-                    : ""
-                }`}
-                value={formData.identificacion}
+                className={`w-full h-10 bg-white border-gray-300 focus:ring-blue-500 focus:border-blue-500 rounded-md ${errors.username && touched.username ? "border-red-500 focus:ring-red-500" : ""
+                  }`}
+                value={formData.username}
                 onChange={handleChange}
                 onBlur={handleBlur}
               />
-              {errors.identificacion && touched.identificacion && (
-                <p className="mt-1 text-xs text-red-500">{errors.identificacion}</p>
-              )}
+              {errors.username && touched.username && <p className="mt-1 text-xs text-red-500">{errors.username}</p>}
             </div>
 
             <div>
-              <label htmlFor="nombre" className="block text-sm font-medium text-gray-700 mb-1">
-                Nombre
-              </label>
-              <Input
-                id="nombre"
-                name="nombre"
-                type="text"
-                className={`w-full h-10 bg-white border-gray-200 focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.nombre && touched.nombre ? "border-red-500 focus:ring-red-500 focus:border-red-500" : ""
-                }`}
-                value={formData.nombre}
-                onChange={handleChange}
-                onBlur={handleBlur}
-              />
-              {errors.nombre && touched.nombre && <p className="mt-1 text-xs text-red-500">{errors.nombre}</p>}
-            </div>
-
-            <div>
-              <label htmlFor="primerApellido" className="block text-sm font-medium text-gray-700 mb-1">
-                Primer Apellido
-              </label>
-              <Input
-                id="primerApellido"
-                name="primerApellido"
-                type="text"
-                className={`w-full h-10 bg-white border-gray-200 focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.primerApellido && touched.primerApellido
-                    ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-                    : ""
-                }`}
-                value={formData.primerApellido}
-                onChange={handleChange}
-                onBlur={handleBlur}
-              />
-              {errors.primerApellido && touched.primerApellido && (
-                <p className="mt-1 text-xs text-red-500">{errors.primerApellido}</p>
-              )}
-            </div>
-
-            <div>
-              <label htmlFor="segundoApellido" className="block text-sm font-medium text-gray-700 mb-1">
-                Segundo Apellido
-              </label>
-              <Input
-                id="segundoApellido"
-                name="segundoApellido"
-                type="text"
-                className="w-full h-10 bg-white border-gray-200 focus:ring-blue-500 focus:border-blue-500"
-                value={formData.segundoApellido}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div>
-              <label htmlFor="idEmpleado" className="block text-sm font-medium text-gray-700 mb-1">
-                ID Empleado
-              </label>
-              <Input
-                id="idEmpleado"
-                name="idEmpleado"
-                type="text"
-                className={`w-full h-10 bg-white border-gray-200 focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.idEmpleado && touched.idEmpleado
-                    ? "border-red-500 focus:ring-red-500 focus:border-red-500"
-                    : ""
-                }`}
-                value={formData.idEmpleado}
-                onChange={handleChange}
-                onBlur={handleBlur}
-              />
-              {errors.idEmpleado && touched.idEmpleado && (
-                <p className="mt-1 text-xs text-red-500">{errors.idEmpleado}</p>
-              )}
-            </div>
-
-            <div>
-              <label htmlFor="cargo" className="block text-sm font-medium text-gray-700 mb-1">
-                Cargo
-              </label>
-              <Select defaultValue={formData.cargo} onValueChange={(value) => handleSelectChange("cargo", value)}>
-                <SelectTrigger className="w-full h-10 bg-white border-gray-200 focus:ring-blue-500 focus:border-blue-500">
-                  <SelectValue placeholder="Seleccionar cargo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="gerente">Gerente</SelectItem>
-                  <SelectItem value="supervisor">Supervisor</SelectItem>
-                  <SelectItem value="administrador">Administrador</SelectItem>
-                  <SelectItem value="operador">Operador</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <label htmlFor="perfil" className="block text-sm font-medium text-gray-700 mb-1">
-                Perfil de Usuario
-              </label>
-              <Select defaultValue={formData.perfil} onValueChange={(value) => handleSelectChange("perfil", value)}>
-                <SelectTrigger className="w-full h-10 bg-white border-gray-200 focus:ring-blue-500 focus:border-blue-500">
-                  <SelectValue placeholder="Seleccionar perfil" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="super-admin">Super Admin</SelectItem>
-                  <SelectItem value="admin">Administrador</SelectItem>
-                  <SelectItem value="usuario">Usuario</SelectItem>
-                  <SelectItem value="invitado">Invitado</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <label htmlFor="empresa" className="block text-sm font-medium text-gray-700 mb-1">
-                Empresa
-              </label>
-              <Select defaultValue={formData.empresa} onValueChange={(value) => handleSelectChange("empresa", value)}>
-                <SelectTrigger className="w-full h-10 bg-white border-gray-200 focus:ring-blue-500 focus:border-blue-500">
-                  <SelectValue placeholder="Seleccionar empresa" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ampm">AMPM</SelectItem>
-                  <SelectItem value="fresh-market">Fresh Market</SelectItem>
-                  <SelectItem value="musmanni">Musmanni</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <label htmlFor="correo" className="block text-sm font-medium text-gray-700 mb-1">
-                Correo electrónico
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                Correo electrónico <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
-                  id="correo"
-                  name="correo"
+                  id="email"
+                  name="email"
                   type="email"
-                  className={`w-full h-10 bg-white border-gray-200 pl-10 focus:ring-blue-500 focus:border-blue-500 ${
-                    errors.correo && touched.correo ? "border-red-500 focus:ring-red-500 focus:border-red-500" : ""
-                  }`}
-                  value={formData.correo}
+                  className={`w-full h-10 bg-white border-gray-300 pl-10 focus:ring-blue-500 focus:border-blue-500 rounded-md ${errors.email && touched.email ? "border-red-500 focus:ring-red-500" : ""
+                    }`}
+                  value={formData.email}
                   onChange={handleChange}
                   onBlur={handleBlur}
                 />
               </div>
-              {errors.correo && touched.correo && <p className="mt-1 text-xs text-red-500">{errors.correo}</p>}
+              {errors.email && touched.email && <p className="mt-1 text-xs text-red-500">{errors.email}</p>}
             </div>
 
             <div>
-              <label htmlFor="telefono" className="block text-sm font-medium text-gray-700 mb-1">
-                Teléfono
+              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+                Teléfono <span className="text-xs text-gray-500">(Opcional)</span>
               </label>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
-                  id="telefono"
-                  name="telefono"
+                  id="phone"
+                  name="phone"
                   type="tel"
-                  placeholder="1234-5678"
-                  className={`w-full h-10 bg-white border-gray-200 pl-10 focus:ring-blue-500 focus:border-blue-500 ${
-                    errors.telefono && touched.telefono ? "border-red-500 focus:ring-red-500 focus:border-red-500" : ""
-                  }`}
-                  value={formData.telefono}
+                  placeholder="Ej: 8888-8888"
+                  className={`w-full h-10 bg-white border-gray-300 pl-10 focus:ring-blue-500 focus:border-blue-500 rounded-md ${errors.phone && touched.phone ? "border-red-500 focus:ring-red-500" : ""
+                    }`}
+                  value={formData.phone}
                   onChange={handleChange}
                   onBlur={handleBlur}
                 />
               </div>
-              {errors.telefono && touched.telefono && <p className="mt-1 text-xs text-red-500">{errors.telefono}</p>}
-              <p className="mt-1 text-xs text-gray-500">Formato: 1234-5678</p>
+              {errors.phone && touched.phone && <p className="mt-1 text-xs text-red-500">{errors.phone}</p>}
             </div>
           </div>
         </div>
@@ -457,45 +441,42 @@ export function ProfileConfigForm({ onSave, onNext, onChangePassword, isSaving }
           <div className="flex items-center">
             <Button
               variant="outline"
-              className="bg-blue-600 text-white hover:bg-blue-700 flex items-center"
+              className="bg-blue-600 text-white hover:bg-blue-700 flex items-center text-sm px-4 py-2 h-auto"
               onClick={onChangePassword}
             >
               <LockKeyhole className="mr-2 h-4 w-4" />
               Cambiar Contraseña
             </Button>
-            <div className="ml-4 text-sm text-gray-500">
-              Se recomienda cambiar tu contraseña periódicamente por seguridad
-            </div>
+            <p className="ml-4 text-xs text-gray-500">
+              Mantén tu cuenta segura actualizando tu contraseña periódicamente.
+            </p>
           </div>
         </div>
 
         {/* Botones de navegación */}
-        <div className="flex justify-between pt-6 border-t">
-          <Button variant="outline" className="px-6 border-gray-300 text-gray-700 hover:bg-gray-50">
+        <div className="flex flex-col sm:flex-row justify-between items-center pt-5 border-t mt-6">
+          <Button 
+            onClick={()=>(router.push("/dashboard"))}
+            variant="outline"
+            className="px-5 py-2 text-sm border-gray-300 text-gray-700 hover:bg-gray-100 w-full sm:w-auto mb-2 sm:mb-0"
+          >
             Atrás
           </Button>
-
-          <div className="flex space-x-3">
+          <div className="flex space-x-3 w-full sm:w-auto">
             <Button
               variant="outline"
-              className="px-6 border-blue-600 text-blue-600 hover:bg-blue-50"
+              className="px-5 py-2 text-sm border-blue-600 text-blue-600 hover:bg-blue-50 flex-1 sm:flex-none"
               onClick={handleSave}
               disabled={isSaving}
             >
-              {isSaving ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Guardando...
-                </>
-              ) : (
-                <>
-                  <Save className="mr-2 h-4 w-4" />
-                  Guardar
-                </>
-              )}
+              {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+              Guardar
             </Button>
-
-            <Button className="bg-blue-600 hover:bg-blue-700 text-white px-6" onClick={onNext} disabled={isSaving}>
+            <Button
+              className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 text-sm flex-1 sm:flex-none"
+              onClick={onNext}
+              disabled={isSaving}
+            >
               Siguiente
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
