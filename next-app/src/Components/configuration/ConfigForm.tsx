@@ -5,10 +5,11 @@ import { useState, useEffect, use } from "react"
 import Image from "next/image"
 import { Button } from "@/Components/ui/button"
 import { Input } from "@/Components/ui/input"
+import { jwtDecode } from "jwt-decode";
 import {
   Camera,
   LockKeyhole,
-  User,
+  User as UserIcon,
   Mail,
   Phone,
   Shield,
@@ -20,9 +21,11 @@ import {
   Briefcase,
   AtSign,
 } from "lucide-react"
+
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/Components/ui/tooltip"
 import { useToast } from "@/Components/ui/use-toast"
 import { z } from "zod"
+import type { User as UserType } from "@/context/UserContext"
 import { useUser } from "@/context/UserContext"
 import { useRouter } from "next/navigation"
 
@@ -103,7 +106,7 @@ export function ProfileConfigForm({
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [touched, setTouched] = useState<Record<string, boolean>>({})
   const { toast } = useToast()
-  const user = useUser()
+  const { user, setUser } = useUser()
   const router = useRouter()
   const [formData, setFormData] = useState({
     username: "",
@@ -165,24 +168,24 @@ export function ProfileConfigForm({
     validateField(name, value)
   }
 
-const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-  const file = e.target.files?.[0];
-  if (file) {
-    setIsUploading(true);
-    const imageUrl = URL.createObjectURL(file);
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setIsUploading(true);
+      const imageUrl = URL.createObjectURL(file);
 
-    // Solo para mostrar un efecto visual de carga breve
-    setTimeout(() => {
-      setProfileImage(imageUrl);
-      setIsUploading(false);
-      toast({
-        title: "Imagen seleccionada",
-        description: "Será cargada al guardar los cambios.",
-        variant: "default",
-      });
-    }, 1200);
-  }
-};
+      // Solo para mostrar un efecto visual de carga breve
+      setTimeout(() => {
+        setProfileImage(imageUrl);
+        setIsUploading(false);
+        toast({
+          title: "Imagen seleccionada",
+          description: "Será cargada al guardar los cambios.",
+          variant: "default",
+        });
+      }, 1200);
+    }
+  };
 
   const handleRemoveImage = () => {
     setProfileImage(null)
@@ -223,54 +226,36 @@ const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     form.append("username", formData.username);
     form.append("email", formData.email);
     form.append("phone", formData.phone);
+    const file = (document.getElementById("profile-photo") as HTMLInputElement)?.files?.[0];
+    if (file) form.append("avatar", file);
 
-    // 👇 Captura el archivo si se seleccionó una nueva imagen
-    const fileInput = document.getElementById("profile-photo") as HTMLInputElement;
-    const file = fileInput?.files?.[0];
-    if (file) {
-      form.append("avatar", file);
-    }
-
-    const res = await fetch(`/api/users/${user.sub}`, {
-      method: "PATCH",
-      body: form,
-    });
-
-    if (!res.ok) {
-      throw new Error("Error actualizando el usuario");
-    }
-
-    return await res.json();
+    const res = await fetch(`/api/users/${user.sub}`, { method: "PATCH", body: form });
+    if (!res.ok) throw new Error("Error actualizando el usuario");
+    return res.json() as Promise<{ token: string }>;
   };
+
 
   const handleSave = async () => {
-    if (validateForm()) {
-      try {
-        await handlePatchUser();
+    if (!validateForm()) {
+      toast({ title: "Error de validación", description: "Revisa los campos.", variant: "destructive" });
+      return;
+    }
 
-        toast({
-          title: "Usuario actualizado",
-          description: "Los cambios se guardaron correctamente.",
-          variant: "success",
-        });
+    try {
+      const { token } = await handlePatchUser();          // 1️⃣  token nuevo
+      localStorage.setItem("token", token);               // 2️⃣  guardar
 
-        await onSave(); // esto refresca contexto u otros efectos externos
-      } catch (error) {
-        console.error(error);
-        toast({
-          title: "Error al guardar",
-          description: "Hubo un problema al actualizar tu perfil.",
-          variant: "destructive",
-        });
-      }
-    } else {
-      toast({
-        title: "Error de validación",
-        description: "Por favor, revisa los campos marcados.",
-        variant: "destructive",
-      });
+      const decoded = jwtDecode(token) as User;           // 3️⃣  decodificar
+      setUser(decoded);                                   // 4️⃣  actualizar contexto
+
+      toast({ title: "Usuario actualizado", description: "Cambios guardados.", variant: "success" });
+      await onSave?.();
+    } catch (err) {
+      console.error(err);
+      toast({ title: "Error al guardar", description: "Hubo un problema.", variant: "destructive" });
     }
   };
+
 
   const FormField = ({ label, value, icon: Icon }: { label: string; value: string; icon?: React.ElementType }) => (
     <div>
@@ -288,7 +273,8 @@ const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         {/* Foto de Perfil */}
         <div className="bg-gray-50 p-6 rounded-lg border border-gray-100">
           <h3 className="text-lg font-medium text-gray-700 mb-4 flex items-center">
-            <User className="mr-2 h-5 w-5 text-blue-500" />
+            <UserIcon className="mr-2 h-5 w-5 text-blue-500" />
+
             Foto de Perfil
           </h3>
           <div className="flex items-center justify-start">
@@ -455,8 +441,8 @@ const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
 
         {/* Botones de navegación */}
         <div className="flex flex-col sm:flex-row justify-between items-center pt-5 border-t mt-6">
-          <Button 
-            onClick={()=>(router.push("/dashboard"))}
+          <Button
+            onClick={() => (router.push("/dashboard"))}
             variant="outline"
             className="px-5 py-2 text-sm border-gray-300 text-gray-700 hover:bg-gray-100 w-full sm:w-auto mb-2 sm:mb-0"
           >

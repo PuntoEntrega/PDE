@@ -16,21 +16,21 @@ export function ConfigurationStepper({ currentStep }: ConfigurationStepperProps)
       name: "Configuración Mi Perfil",
       description: "Datos personales y de contacto",
       icon: User,
-      href: "/configuracion/perfil",
+      href: "/configuration/profile",
     },
     {
       id: 2,
       name: "Configuración Mi Empresa",
       description: "Información de la empresa",
       icon: Building2,
-      href: "/configuracion/empresa",
+      href: "/configuration/company",
     },
     {
       id: 3,
       name: "Usuarios de Mis PdEs",
       description: "Gestión de usuarios",
       icon: Users,
-      href: "/configuracion/usuarios",
+      href: "/configuration/users",
     },
   ]
 

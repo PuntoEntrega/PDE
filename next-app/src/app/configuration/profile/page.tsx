@@ -33,7 +33,7 @@ export default function ProfileConfigPage() {
 
   const handleNext = () => {
     handleSave().then(() => {
-      router.push("/configuracion/empresa")
+      router.push("/configuration/company")
     })
   }
 
