@@ -1,3 +1,4 @@
+// layout.tsx
 "use client"
 
 import "./globals.css"
@@ -40,7 +41,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="es">
       <body>
-        <UserContext.Provider value={user}>
+        <UserContext.Provider value={{ user, setUser }}>
           {children}
         </UserContext.Provider>
       </body>

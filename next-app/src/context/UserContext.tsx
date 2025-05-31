@@ -1,3 +1,4 @@
+// context/UserContext.tsx
 "use client"
 
 import { createContext, useContext } from "react"
@@ -18,6 +19,14 @@ export interface User {
   updated_at: string
 }
 
-export const UserContext = createContext<User | null>(null)
+interface UserContextType {
+  user: User | null
+  setUser: (user: User | null) => void
+}
+
+export const UserContext = createContext<UserContextType>({
+  user: null,
+  setUser: () => {},
+})
 
 export const useUser = () => useContext(UserContext)
