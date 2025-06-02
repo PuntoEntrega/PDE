@@ -1,13 +1,14 @@
 "use client"
 
 import type React from "react"
+import logoApp from '../../../public/punto_entrega_logo.png'
 import { useState } from "react"
 import { Button } from "@/Components/ui/button"
 import { Card, CardContent } from "@/Components/ui/card"
 import { Input } from "@/Components/ui/input"
 import Image from "next/image"
-import { useAlert } from "@/Components/alerts/use-alert"
-import { forgotPasswordSchema, type ForgotPasswordFormData } from "../../../lib/validations/auth"
+import { useAlert } from "@/Components/Alerts/use-alert"
+import { forgotPasswordSchema, type ForgotPasswordFormData } from "../../../lib/Validations/auth"
 
 interface ForgotPasswordProps {
   onBack: () => void
@@ -25,29 +26,34 @@ export function ForgotPassword({ onBack }: ForgotPasswordProps) {
     setIsLoading(true)
 
     try {
-      // Validar datos del formulario
+      // Validación frontend con Zod
       const validatedData = forgotPasswordSchema.parse(formData)
 
-      // Aquí iría tu lógica de recuperación
-      console.log("Recovery attempt for:", validatedData)
+      // Petición real al backend
+      const res = await fetch("/api/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(validatedData),
+      })
 
-      // Simulación de éxito
+      const data = await res.json()
+
+      if (!res.ok) {
+        showAlert("error", "Error", data.message || "No se pudo enviar el correo")
+        return
+      }
+
       showAlert(
         "success",
         "Correo enviado",
-        "Te hemos enviado un correo con las instrucciones para recuperar tu contraseña",
+        "Te hemos enviado un correo con las instrucciones para recuperar tu contraseña"
       )
 
-      // Volver al login después de un tiempo
       setTimeout(() => {
         onBack()
       }, 3000)
     } catch (error) {
-      if (error instanceof Error) {
-        showAlert("error", "Error de validación", error.message)
-      } else {
-        showAlert("error", "Error", "Por favor verifica tus datos")
-      }
+      showAlert("error", "Error inesperado", "Ocurrió un problema al intentar enviar el correo")
     } finally {
       setIsLoading(false)
     }
@@ -56,16 +62,15 @@ export function ForgotPassword({ onBack }: ForgotPasswordProps) {
   return (
     <Card className="w-[100%] h-[100%] mx-auto bg-white shadow-xl rounded-2xl border-0">
       <CardContent className="p-8">
-        {/* Logo oficial de Punto Entrega */}
         <div className="flex justify-center mb-6">
-          <Image src="/logo.png" alt="Punto Entrega" width={200} height={60} className="h-auto" />
+          <Image src={logoApp} alt="Punto Entrega" width={200} height={60} className="h-auto" />
         </div>
 
         <h1 className="text-lg font-medium text-gray-800 text-center mb-4">Recuperar contraseña</h1>
 
         <p className="text-sm text-gray-600 text-center mb-6">
           Escribe tu nombre de usuario o correo electrónico asociado y te enviaremos un correo de recuperación de
-          contraseña
+          contraseña.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-5">

@@ -9,8 +9,8 @@ import { Card, CardContent } from "@/Components/ui/card"
 import { Input } from "@/Components/ui/input"
 import { Eye, EyeOff } from "lucide-react"
 import Image from "next/image"
-import { useAlert } from "@/Components/alerts/use-alert"
-import { loginSchema, type LoginFormData } from "../../../lib/validations/auth"
+import { useAlert } from "@/Components/Alerts/use-alert"
+import { loginSchema, type LoginFormData } from "../../../lib/Validations/auth"
 import { useRouter } from "next/navigation"
 
 
