@@ -2,9 +2,9 @@
 
 import { useState } from "react"
 import { Sidebar } from "@/Components/Sidebar/Sidebar"
-import { ConfigurationStepper } from "@/Components/configuration/ConfigurationStepper"
-import { ProfileConfigForm } from "@/Components/configuration/ConfigForm"
-import { ChangePasswordModal } from "@/Components/configuration/ChangePasswordModal"
+import { ConfigurationStepper } from "@/Components/stepperConfig/steppers/ConfigurationStepper"
+import { ProfileConfigForm } from "@/Components/stepperConfig/UserConfig/ConfigForm"
+import { ChangePasswordModal } from "@/Components/stepperConfig/UserConfig/ChangePasswordModal"
 import { Toaster } from "@/Components/ui/toaster"
 import { useToast } from "@/Components/ui/use-toast"
 import { useRouter } from "next/navigation"

@@ -3,67 +3,53 @@
 import { useState } from "react"
 import { Sidebar } from "@/Components/Sidebar/Sidebar"
 import { ConfigurationStepper } from "@/Components/stepperConfig/steppers/ConfigurationStepper"
-import { CompanyGeneralForm } from "@/Components/stepperConfig/CompanieConfig/company-general-form"
-import { CompanyBillingForm } from "@/Components/stepperConfig/CompanieConfig/company-billing-form"
+import PdeGeneralDataForm from "@/Components/stepperConfig/PDEConfig/general-data-form"
+import PdeParcelServiceForm from "@/Components/stepperConfig/PDEConfig/parcel-service-form"
 import { Toaster } from "@/Components/ui/toaster"
 import { useToast } from "@/Components/ui/use-toast"
 import { useRouter } from "next/navigation"
 import { Button } from "@/Components/ui/button"
-import { ArrowLeft, ArrowRight } from "lucide-react"
+import { ArrowLeft, Send } from "lucide-react"
 
-export default function CompanyConfigPage() {
-  const [activeTab, setActiveTab] = useState<"datos-generales" | "manejo-dinero">("datos-generales")
+export default function PdeConfigPage() {
+  const [activeTab, setActiveTab] = useState<"datos-generales" | "paqueteria">("datos-generales")
   const [isSaving, setIsSaving] = useState(false)
   const { toast } = useToast()
   const router = useRouter()
 
-  const [companyData, setCompanyData] = useState<any>(null)
-  const [legalRepData, setLegalRepData] = useState<any>(null)
-  const [billingConfigData, setBillingConfigData] = useState<any>(null)
-  const [bankAccountData, setBankAccountData] = useState<any>(null)
-
-  const handleSave = async (formData: any, formType: string) => {
+  const handleSave = async () => {
     setIsSaving(true)
-    console.log(`Guardando ${formType}:`, formData)
+    console.log("Guardando datos del PDE...")
 
     await new Promise((resolve) => setTimeout(resolve, 1500))
 
-    if (formType === "datosGenerales") {
-      setCompanyData(formData.company)
-      setLegalRepData(formData.legalRepresentative)
-    } else if (formType === "manejoDinero") {
-      setBillingConfigData(formData.billing)
-      setBankAccountData(formData.bankAccount)
-    }
-
     toast({
-      title: "Información Guardada",
-      description: `Los datos de ${formType === "datosGenerales" ? "Datos Generales" : "Manejo de Dinero y Facturación"} han sido guardados.`,
+      title: "PDE Enviado a Aprobación",
+      description: "Tu Punto de Entrega ha sido enviado para revisión. Recibirás una notificación en máximo 3 días.",
       variant: "success",
     })
 
     setIsSaving(false)
   }
 
-  const handleNext = () => {
-    router.push("/configuration/pde")
-  }
-
   const handleBack = () => {
-    router.push("/configuration/profile")
+    router.push("/configuration/company")
   }
 
   return (
     <Sidebar userName="Juan Pérez Araya">
       <div className="min-h-full bg-gradient-to-br from-gray-50 to-blue-50/20 p-4 sm:p-6">
         <div className="max-w-7xl mx-auto">
-          <ConfigurationStepper currentStep={2} />
+          <ConfigurationStepper currentStep={3} />
 
           <div className="bg-white rounded-xl shadow-xl mt-6 overflow-hidden">
             <div className="border-b border-gray-200 bg-gradient-to-r from-blue-50 via-white to-white p-5 sm:p-6">
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-800">Configuración de Mi Empresa</h1>
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-800">Mis PDEs</h1>
               <p className="text-sm text-gray-500 mt-1">
-                Completa la información de tu empresa y los detalles de facturación.
+                Para crear un nuevo PDE es obligatorio completar la información de{" "}
+                <span className="font-semibold">Datos Generales</span> y{" "}
+                <span className="font-semibold">Paquetería</span>. Será enviado a{" "}
+                <span className="font-semibold text-blue-600">Asistencia PDE</span> para su revisión.
               </p>
             </div>
 
@@ -80,44 +66,30 @@ export default function CompanyConfigPage() {
                   Datos Generales
                 </button>
                 <button
-                  onClick={() => setActiveTab("manejo-dinero")}
+                  onClick={() => setActiveTab("paqueteria")}
                   className={`py-3 sm:py-4 px-3 sm:px-4 font-medium text-sm whitespace-nowrap border-b-2 transition-colors ${
-                    activeTab === "manejo-dinero"
+                    activeTab === "paqueteria"
                       ? "border-blue-600 text-blue-600"
                       : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
                   }`}
                 >
-                  Manejo de Dinero y Facturación
+                  Paquetería
                 </button>
               </nav>
             </div>
 
             <div className="p-4 sm:p-6">
-              {activeTab === "datos-generales" && (
-                <CompanyGeneralForm
-                  initialCompanyData={companyData}
-                  initialLegalRepData={legalRepData}
-                  onSave={(data) => handleSave(data, "datosGenerales")}
-                  isSaving={isSaving}
-                />
-              )}
-              {activeTab === "manejo-dinero" && (
-                <CompanyBillingForm
-                  initialBillingData={billingConfigData}
-                  initialBankAccountData={bankAccountData}
-                  onSave={(data) => handleSave(data, "manejoDinero")}
-                  isSaving={isSaving}
-                />
-              )}
+              {activeTab === "datos-generales" && <PdeGeneralDataForm />}
+              {activeTab === "paqueteria" && <PdeParcelServiceForm />}
             </div>
           </div>
 
           <div className="mt-6 bg-white rounded-xl p-4 shadow-sm border border-gray-100">
             <div className="flex items-center mb-3">
               <div className="w-full bg-gray-200 rounded-full h-2.5">
-                <div className="bg-blue-600 h-2.5 rounded-full w-2/3 transition-all duration-500"></div>
+                <div className="bg-blue-600 h-2.5 rounded-full w-full transition-all duration-500"></div>
               </div>
-              <span className="ml-4 text-sm font-medium text-gray-500 whitespace-nowrap">66% completado</span>
+              <span className="ml-4 text-sm font-medium text-gray-500 whitespace-nowrap">100% completado</span>
             </div>
             <div className="flex flex-col sm:flex-row justify-between items-center pt-3 border-t">
               <Button
@@ -131,11 +103,11 @@ export default function CompanyConfigPage() {
               </Button>
               <Button
                 className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 text-sm w-full sm:w-auto"
-                onClick={handleNext}
+                onClick={handleSave}
                 disabled={isSaving}
               >
-                Siguiente
-                <ArrowRight className="ml-2 h-4 w-4" />
+                {isSaving ? "Enviando..." : "Enviar a Aprobación"}
+                <Send className="ml-2 h-4 w-4" />
               </Button>
             </div>
           </div>

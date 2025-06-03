@@ -19,6 +19,7 @@ import {
   Save,
   Loader2,
   Settings2,
+  AlertCircle,
 } from "lucide-react"
 import { z } from "zod"
 
@@ -158,16 +159,19 @@ export function CompanyBillingForm({
   ]
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
+    <div className="space-y-6">
       {/* Opciones de Facturación */}
-      <Card className="border-gray-200 shadow-sm">
-        <CardHeader className="bg-gray-50 p-4 rounded-t-lg border-b">
-          <CardTitle className="text-lg font-semibold text-gray-700 flex items-center">
-            <Settings2 className="mr-2 h-5 w-5 text-blue-600" />
+      <Card className="border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+        <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-t-lg border-b">
+          <CardTitle className="text-xl font-semibold text-gray-800 flex items-center">
+            <div className="p-2 bg-blue-100 rounded-lg mr-3">
+              <Settings2 className="h-6 w-6 text-blue-600" />
+            </div>
             Opciones de Facturación
           </CardTitle>
+          <p className="text-sm text-gray-600 mt-2">Configura cómo deseas recibir tus facturas</p>
         </CardHeader>
-        <CardContent className="p-4 space-y-4">
+        <CardContent className="p-6">
           <RadioGroupField
             label="Selecciona la opción para facturación que mejor se ajuste a su empresa:"
             name="billing_distribution_model"
@@ -181,12 +185,12 @@ export function CompanyBillingForm({
               },
               {
                 value: "distribuida-misma-cuenta",
-                label: "Facturación distribuida en una misma cuenta de facturación electrónica",
+                label: "Facturación distribuida en una misma cuenta",
                 description: "Recibirás en una única cuenta una factura por cada PdE.",
               },
               {
                 value: "distribuida-diferentes-cuentas",
-                label: "Facturación distribuida con diferentes cuentas de facturación electrónica por cada PdE",
+                label: "Facturación distribuida con diferentes cuentas por PdE",
                 description: "Recibirás una factura por cada PdE en su respectiva cuenta de facturación.",
               },
             ]}
@@ -196,15 +200,18 @@ export function CompanyBillingForm({
       </Card>
 
       {/* Datos de Facturación */}
-      <Card className="border-gray-200 shadow-sm">
-        <CardHeader className="bg-gray-50 p-4 rounded-t-lg border-b">
-          <CardTitle className="text-lg font-semibold text-gray-700 flex items-center">
-            <FileSignature className="mr-2 h-5 w-5 text-blue-600" />
+      <Card className="border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+        <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-t-lg border-b">
+          <CardTitle className="text-xl font-semibold text-gray-800 flex items-center">
+            <div className="p-2 bg-green-100 rounded-lg mr-3">
+              <FileSignature className="h-6 w-6 text-green-600" />
+            </div>
             Datos para Facturación
           </CardTitle>
+          <p className="text-sm text-gray-600 mt-2">Información que aparecerá en tus facturas</p>
         </CardHeader>
-        <CardContent className="p-4 space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <CardContent className="p-6 space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <SelectField
               label="Tipo de Identificación"
               name="document_type_id"
@@ -231,7 +238,7 @@ export function CompanyBillingForm({
               required
             />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <InputField
               label="Correo para Facturación"
               name="billing_email"
@@ -252,9 +259,9 @@ export function CompanyBillingForm({
               icon={Phone}
             />
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <SelectField
-              label="Tipo de Facturación (Contado/Crédito)"
+              label="Tipo de Facturación"
               name="billing_type"
               value={billingFormData.billing_type}
               onValueChange={(value) => handleBillingSelectChange("billing_type", value)}
@@ -271,37 +278,44 @@ export function CompanyBillingForm({
       </Card>
 
       {/* Opciones de Pago y Cuenta Bancaria */}
-      <Card className="border-gray-200 shadow-sm">
-        <CardHeader className="bg-gray-50 p-4 rounded-t-lg border-b">
-          <CardTitle className="text-lg font-semibold text-gray-700 flex items-center">
-            <DollarSign className="mr-2 h-5 w-5 text-blue-600" />
+      <Card className="border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+        <CardHeader className="bg-gradient-to-r from-purple-50 to-violet-50 p-6 rounded-t-lg border-b">
+          <CardTitle className="text-xl font-semibold text-gray-800 flex items-center">
+            <div className="p-2 bg-purple-100 rounded-lg mr-3">
+              <DollarSign className="h-6 w-6 text-purple-600" />
+            </div>
             Configuración de Pagos
           </CardTitle>
+          <p className="text-sm text-gray-600 mt-2">Define cómo quieres recibir los pagos</p>
         </CardHeader>
-        <CardContent className="p-4 space-y-4">
+        <CardContent className="p-6 space-y-6">
           <RadioGroupField
-            label="Selecciona la opción de pago que mejor se ajuste a su empresa:"
+            label="Selecciona la opción de pago que mejor se ajuste a tu empresa:"
             name="payment_reception_model"
             value={billingFormData.payment_reception_model}
             onValueChange={(value) => handleBillingRadioChange("payment_reception_model", value)}
             options={[
               {
                 value: "unica-cuenta",
-                label: "Quiero recibir los pagos de todos los PdE en una única cuenta.",
+                label: "Cuenta única para todos los PdE",
+                description: "Todos los pagos se depositarán en una sola cuenta bancaria.",
               },
               {
                 value: "multiples-cuentas",
-                label: "Quiero recibir los pagos en cuentas diferentes por cada PdE.",
-                description: "(Podrá configurar las cuentas por PdE más adelante)",
+                label: "Cuentas diferentes por cada PdE",
+                description: "Podrás configurar una cuenta bancaria específica para cada punto de entrega.",
               },
             ]}
             error={billingErrors.payment_reception_model}
           />
 
           {billingFormData.payment_reception_model === "unica-cuenta" && (
-            <div className="mt-4 pt-4 border-t border-gray-200">
-              <h4 className="text-md font-medium text-gray-700 mb-3">Cuenta Bancaria Principal para Pagos</h4>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="mt-6 p-6 bg-gray-50 rounded-lg border border-gray-200">
+              <h4 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                <CreditCardIcon className="h-5 w-5 text-blue-600 mr-2" />
+                Cuenta Bancaria Principal
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <InputField
                   label="Cuenta IBAN"
                   name="iban"
@@ -335,24 +349,38 @@ export function CompanyBillingForm({
         </CardContent>
       </Card>
 
-      <div className="flex justify-end pt-4">
-        <Button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white" disabled={isSaving}>
-          {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-          Guardar Configuración de Dinero
+      <div className="flex justify-end pt-6">
+        <Button
+          type="submit"
+          onClick={handleSubmit}
+          className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-3 text-sm font-medium shadow-lg hover:shadow-xl transition-all duration-200"
+          disabled={isSaving}
+        >
+          {isSaving ? (
+            <>
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              Guardando...
+            </>
+          ) : (
+            <>
+              <Save className="mr-2 h-5 w-5" />
+              Guardar Configuración
+            </>
+          )}
         </Button>
       </div>
-    </form>
+    </div>
   )
 }
 
-// Componentes reutilizables (puedes moverlos a un archivo utils si se usan en más sitios)
+// Componentes reutilizables
 const InputField = ({ label, name, type = "text", value, onChange, error, icon: Icon, placeholder, required }: any) => (
   <div>
-    <label htmlFor={name} className="block text-sm font-medium text-gray-700 mb-1">
+    <label htmlFor={name} className="block text-sm font-semibold text-gray-800 mb-2">
       {label} {required && <span className="text-red-500">*</span>}
     </label>
     <div className="relative">
-      {Icon && <Icon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />}
+      {Icon && <Icon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />}
       <Input
         id={name}
         name={name}
@@ -360,55 +388,80 @@ const InputField = ({ label, name, type = "text", value, onChange, error, icon: 
         value={value}
         onChange={onChange}
         placeholder={placeholder || `Ingrese ${label.toLowerCase()}`}
-        className={`${Icon ? "pl-10" : ""} ${error ? "border-red-500" : "border-gray-300"}`}
+        className={`${Icon ? "pl-11" : ""} ${error ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-blue-500"} h-12 text-sm transition-colors`}
       />
     </div>
-    {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+    {error && (
+      <p className="text-sm text-red-500 mt-1 flex items-center">
+        <AlertCircle className="h-4 w-4 mr-1" />
+        {error}
+      </p>
+    )}
   </div>
 )
 
-
 const SelectField = ({ label, name, value, onValueChange, options, error, required }: any) => (
   <div>
-    <label htmlFor={name} className="block text-sm font-medium text-gray-700 mb-1">
+    <label htmlFor={name} className="block text-sm font-semibold text-gray-800 mb-2">
       {label} {required && <span className="text-red-500">*</span>}
     </label>
     <Select name={name} value={value} onValueChange={onValueChange}>
-      <SelectTrigger className={`${error ? "border-red-500" : "border-gray-300"}`}>
+      <SelectTrigger
+        className={`${error ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-blue-500"} h-12 text-sm transition-colors bg-white`}
+      >
         <SelectValue placeholder={`Seleccione ${label.toLowerCase()}`} />
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent className="bg-white border border-gray-200 shadow-lg">
         {options.map((option: any) => (
-          <SelectItem key={option.value} value={option.value}>
+          <SelectItem
+            key={option.value}
+            value={option.value}
+            className="hover:bg-blue-50 focus:bg-blue-50 cursor-pointer"
+          >
             {option.label}
           </SelectItem>
         ))}
       </SelectContent>
     </Select>
-    {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+    {error && (
+      <p className="text-sm text-red-500 mt-1 flex items-center">
+        <AlertCircle className="h-4 w-4 mr-1" />
+        {error}
+      </p>
+    )}
   </div>
 )
 
-
 const RadioGroupField = ({ label, name, value, onValueChange, options, error }: any) => (
   <div>
-    <Label className="text-sm font-medium text-gray-700 mb-2 block">{label}</Label>
-    <RadioGroup name={name} value={value} onValueChange={onValueChange} className="space-y-2">
+    <Label className="text-sm font-semibold text-gray-800 mb-4 block">{label}</Label>
+    <RadioGroup name={name} value={value} onValueChange={onValueChange} className="space-y-3">
       {options.map((option: any) => (
         <div
           key={option.value}
-          className="flex items-start space-x-2 p-3 border rounded-md hover:border-blue-300 transition-colors"
+          className={`flex items-start space-x-3 p-4 border-2 rounded-xl hover:border-blue-300 transition-all duration-200 cursor-pointer ${
+            value === option.value ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:bg-gray-50"
+          }`}
         >
-          <RadioGroupItem value={option.value} id={`${name}-${option.value}`} className="mt-1" />
-          <div className="grid gap-1.5 leading-normal">
-            <Label htmlFor={`${name}-${option.value}`} className="font-normal text-gray-800 cursor-pointer">
+          <RadioGroupItem
+            value={option.value}
+            id={`${name}-${option.value}`}
+            className="mt-1 border-2 border-blue-500 text-blue-600 focus:ring-blue-500"
+          />
+          <div className="grid gap-2 leading-normal flex-1">
+            <Label htmlFor={`${name}-${option.value}`} className="font-medium text-gray-900 cursor-pointer">
               {option.label}
             </Label>
-            {option.description && <p className="text-xs text-gray-500">{option.description}</p>}
+            {option.description && <p className="text-sm text-gray-600">{option.description}</p>}
           </div>
         </div>
       ))}
     </RadioGroup>
-    {error && <p className="text-xs text-red-500 mt-1">{error}</p>}
+    {error && (
+      <p className="text-sm text-red-500 mt-2 flex items-center">
+        <AlertCircle className="h-4 w-4 mr-1" />
+        {error}
+      </p>
+    )}
   </div>
 )
