@@ -1,7 +1,7 @@
 "use client"
 
-import { CheckCircle, User, Building2, Users } from "lucide-react"
-import { cn } from "../../../lib/utils"
+import { CheckCircle, User, Building2, MapPin } from "lucide-react"
+import { cn } from "../../../../lib/utils"
 import Link from "next/link"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/Components/ui/tooltip"
 
@@ -13,24 +13,24 @@ export function ConfigurationStepper({ currentStep }: ConfigurationStepperProps)
   const steps = [
     {
       id: 1,
-      name: "Configuración Mi Perfil",
+      name: "Mi Perfil",
       description: "Datos personales y de contacto",
       icon: User,
       href: "/configuration/profile",
     },
     {
       id: 2,
-      name: "Configuración Mi Empresa",
+      name: "Mi Empresa",
       description: "Información de la empresa",
       icon: Building2,
       href: "/configuration/company",
     },
     {
       id: 3,
-      name: "Usuarios de Mis PdEs",
-      description: "Gestión de usuarios",
-      icon: Users,
-      href: "/configuration/users",
+      name: "Mis PDEs",
+      description: "Configuración de puntos de entrega",
+      icon: MapPin,
+      href: "/configuration/pde",
     },
   ]
 
