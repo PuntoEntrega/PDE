@@ -17,16 +17,21 @@ model Companies {
   contact_email        String?                 @db.VarChar(120)
   contact_phone        String?                 @db.VarChar(30)
   owner_user_id        String?                 @db.VarChar(36)
+  parent_company_id    String?                 @db.VarChar(36)
   active               Boolean?                @default(true)
   created_at           DateTime?               @default(now()) @db.DateTime(0)
   updated_at           DateTime?               @default(now()) @db.DateTime(0)
+  logo_url             String?                 @db.VarChar(255)
   Users                Users?                  @relation(fields: [owner_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Companies_ibfk_1")
+  Companies            Companies?              @relation("CompaniesToCompanies", fields: [parent_company_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Companies_ibfk_2")
+  other_Companies      Companies[]             @relation("CompaniesToCompanies")
   CompanyBankAccounts  CompanyBankAccounts[]
   CompanyBillingConfig CompanyBillingConfig[]
   DeliveryPoints       DeliveryPoints[]
   LegalRepresentatives LegalRepresentatives[]
 
   @@index([owner_user_id], map: "owner_user_id")
+  @@index([parent_company_id], map: "parent_company_id")
 }
 
 model CompanyBankAccounts {
@@ -289,6 +294,7 @@ model Users {
   active                Boolean?          @default(true)
   created_at            DateTime?         @default(now()) @db.DateTime(0)
   updated_at            DateTime?         @default(now()) @db.DateTime(0)
+  verified              Int?              @default(0) @map(" verified") @db.TinyInt
   Companies             Companies[]
   DeliveryHistory       DeliveryHistory[]
   Guides                Guides[]

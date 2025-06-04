@@ -5,6 +5,7 @@ import { useState, useEffect, use } from "react"
 import Image from "next/image"
 import { Button } from "@/Components/ui/button"
 import { Input } from "@/Components/ui/input"
+import { SMSVerification } from "@/Components/stepperConfig/UserConfig/SMSVerification"
 import { jwtDecode } from "jwt-decode";
 import {
   Camera,
@@ -107,6 +108,7 @@ export function ProfileConfigForm({
   const [touched, setTouched] = useState<Record<string, boolean>>({})
   const { toast } = useToast()
   const { user, setUser } = useUser()
+  const [isSmsVerified, setIsSmsVerified] = useState(user?.verified || false)
   const router = useRouter()
   const [formData, setFormData] = useState({
     username: "",
@@ -124,6 +126,7 @@ export function ProfileConfigForm({
         phone: user.phone || "",
       });
       setProfileImage(user.avatar_url || null);
+      setIsSmsVerified(user.verified || false)
     }
   }, [user]);
 
@@ -416,6 +419,21 @@ export function ProfileConfigForm({
               {errors.phone && touched.phone && <p className="mt-1 text-xs text-red-500">{errors.phone}</p>}
             </div>
           </div>
+
+          
+        {/* Aquí integramos el componente SMSVerification */}
+         <div className="mt-6">
+           <SMSVerification
+             userId={user?.sub}
+             initialVerified={isSmsVerified}
+             onVerified={(updatedUser) => {
+               setIsSmsVerified(true)
+               // Actualizamos el contexto de usuario con la info nueva
+               setUser(updatedUser)
+             }}
+           />
+         </div>
+
         </div>
 
         {/* Seguridad */}
