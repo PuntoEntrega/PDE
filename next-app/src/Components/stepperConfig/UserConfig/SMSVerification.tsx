@@ -12,6 +12,7 @@ import { cn } from "../../../../lib/utils" // Asegúrate de tener esta utilidad
 interface SMSVerificationProps {
     userId: string
     initialVerified: boolean
+    initialPhone?: string
     onVerified: (updatedUser: any) => void
 }
 
@@ -91,6 +92,7 @@ const CodeInputs = ({
         e.target.select()
     }
 
+
     return (
         <div className="flex justify-center space-x-2 sm:space-x-3">
             {Array.from({ length: 6 }, (_, index) => (
@@ -146,13 +148,14 @@ const InlineAlert = ({ message, type = "error" }: { message: string | null; type
     )
 }
 
-export function SMSVerification({ userId, initialVerified, onVerified }: SMSVerificationProps) {
+export function SMSVerification({ userId, initialVerified, initialPhone, onVerified }: SMSVerificationProps) {
     const { toast } = useToast()
 
     const [step, setStep] = useState<"idle" | "enter-phone" | "sent" | "verifying" | "verified">(
         initialVerified ? "verified" : "idle",
     )
-    const [phoneFull, setPhoneFull] = useState("")
+
+    const [phoneFull, setPhoneFull] = useState(initialPhone ?? "")
     const [smsCode, setSmsCode] = useState("")
     const [errorSending, setErrorSending] = useState<string | null>(null)
     const [errorVerifying, setErrorVerifying] = useState<string | null>(null)
@@ -166,6 +169,12 @@ export function SMSVerification({ userId, initialVerified, onVerified }: SMSVeri
             setStep("verified")
         }
     }, [initialVerified])
+
+    useEffect(() => {
+        if (initialPhone !== undefined) {
+            setPhoneFull(initialPhone)
+        }
+    }, [initialPhone])
 
     useEffect(() => {
         if (cooldown > 0) {
@@ -291,7 +300,6 @@ export function SMSVerification({ userId, initialVerified, onVerified }: SMSVeri
             console.error("Error cancelando código en Redis:", err)
         } finally {
             // Reset completo de estados
-            setPhoneFull("")
             setSmsCode("")
             setErrorSending(null)
             setErrorVerifying(null)
@@ -441,9 +449,9 @@ export function SMSVerification({ userId, initialVerified, onVerified }: SMSVeri
                         <Button
                             variant="outline"
                             className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-50"
-                            onClick={() => {
+                            onClick={
                                 handleCancel
-                            }}
+                            }
                             disabled={isSending}
                         >
                             Cancelar
@@ -490,9 +498,9 @@ export function SMSVerification({ userId, initialVerified, onVerified }: SMSVeri
                         <Button
                             variant="outline"
                             className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-50"
-                            onClick={() => {
+                            onClick={
                                 handleChangeNumber
-                            }}
+                            }
                             disabled={isVerifying}
                         >
                             Cambiar número
