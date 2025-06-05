@@ -263,6 +263,11 @@ export function ProfileConfigForm({
     }
   };
 
+    const handleSaveandNext = async () => {
+      handleSave()
+      onNext()
+  };
+
 
   const FormField = ({ label, value, icon: Icon }: { label: string; value: string; icon?: React.ElementType }) => (
     <div>
@@ -479,7 +484,9 @@ export function ProfileConfigForm({
             </Button>
             <Button
               className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 text-sm flex-1 sm:flex-none"
-              onClick={onNext}
+              onClick={
+                handleSaveandNext
+              }
               disabled={isSaving}
             >
               Siguiente
