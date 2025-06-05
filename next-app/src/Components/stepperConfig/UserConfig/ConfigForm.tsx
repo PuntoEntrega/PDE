@@ -49,6 +49,7 @@ interface UserData {
   phone?: string
   avatar_url?: string
   role_id: string
+  verified: boolean
   // Campos adicionales que no se muestran pero podrían ser útiles
   company_name?: string
 }
@@ -116,7 +117,6 @@ export function ProfileConfigForm({
     phone: "",
   })
 
-  console.log(formData);
 
   useEffect(() => {
     if (user) {
@@ -127,6 +127,9 @@ export function ProfileConfigForm({
       });
       setProfileImage(user.avatar_url || null);
       setIsSmsVerified(user.verified || false)
+      console.log(isSmsVerified);
+      
+      
     }
   }, [user]);
 
@@ -139,6 +142,7 @@ export function ProfileConfigForm({
         phone: initialUserData.phone || "",
       })
       setProfileImage(initialUserData.avatar_url || null)
+      setIsSmsVerified(initialUserData.verified || false)
     }
   }, [initialUserData])
 
@@ -419,21 +423,6 @@ export function ProfileConfigForm({
               {errors.phone && touched.phone && <p className="mt-1 text-xs text-red-500">{errors.phone}</p>}
             </div>
           </div>
-
-          
-        {/* Aquí integramos el componente SMSVerification */}
-         <div className="mt-6">
-           <SMSVerification
-             userId={user?.sub}
-             initialVerified={isSmsVerified}
-             onVerified={(updatedUser) => {
-               setIsSmsVerified(true)
-               // Actualizamos el contexto de usuario con la info nueva
-               setUser(updatedUser)
-             }}
-           />
-         </div>
-
         </div>
 
         {/* Seguridad */}
@@ -454,6 +443,18 @@ export function ProfileConfigForm({
             <p className="ml-4 text-xs text-gray-500">
               Mantén tu cuenta segura actualizando tu contraseña periódicamente.
             </p>
+          </div>
+          {/* Aquí integramos el componente SMSVerification */}
+          <div className="pt-6">
+            <SMSVerification
+              userId={user?.sub}
+              initialVerified={isSmsVerified}
+              onVerified={(updatedUser) => {
+                setIsSmsVerified(true)
+                // Actualizamos el contexto de usuario con la info nueva
+                setUser(updatedUser)
+              }}
+            />
           </div>
         </div>
 

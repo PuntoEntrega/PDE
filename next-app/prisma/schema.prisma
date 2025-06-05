@@ -265,6 +265,7 @@ model Packages {
 model Roles {
   id         String    @id @db.VarChar(36)
   name       String    @db.VarChar(50)
+  level      Int
   created_at DateTime? @default(now()) @db.DateTime(0)
   updated_at DateTime? @default(now()) @db.DateTime(0)
   Users      Users[]
@@ -294,7 +295,7 @@ model Users {
   active                Boolean?          @default(true)
   created_at            DateTime?         @default(now()) @db.DateTime(0)
   updated_at            DateTime?         @default(now()) @db.DateTime(0)
-  verified              Int?              @default(0) @map(" verified") @db.TinyInt
+  verified              Boolean?          @default(false)
   Companies             Companies[]
   DeliveryHistory       DeliveryHistory[]
   Guides                Guides[]

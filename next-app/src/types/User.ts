@@ -11,6 +11,7 @@ export interface AuthUser {
   phone: string
   avatar_url: string
   active: boolean
+  verified: boolean
   created_at: string
   updated_at: string
 }

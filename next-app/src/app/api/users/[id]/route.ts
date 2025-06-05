@@ -47,6 +47,7 @@ export async function PATCH(
         avatar_url: updatedUser.avatar_url,
         active:     updatedUser.active,
         created_at: updatedUser.created_at,
+        verified:   updatedUser.verified,
         updated_at: updatedUser.updated_at,
         identification_number: updatedUser.identification_number,
       },
