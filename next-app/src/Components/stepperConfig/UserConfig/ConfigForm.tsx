@@ -118,7 +118,7 @@ export function ProfileConfigForm({
     email: "",
     phone: "",
   })
-
+  const [defaultCountry, setDefaultCountry] = useState<string>("")
 
   useEffect(() => {
     if (user) {
@@ -147,6 +147,22 @@ export function ProfileConfigForm({
       setIsSmsVerified(initialUserData.verified || false)
     }
   }, [initialUserData])
+
+    // 2) Detectar país via IP
+  useEffect(() => {
+    fetch("https://ipapi.co/json/")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && data.country_code) {
+          setDefaultCountry(data.country_code.toLowerCase())
+        } else {
+          setDefaultCountry("us")
+        }
+      })
+      .catch(() => {
+        setDefaultCountry("us")
+      })
+  }, [])
 
   const validateField = (name: string, value: string) => {
     try {
@@ -449,7 +465,7 @@ export function ProfileConfigForm({
     `}</style>
     <div className="custom-phone-input">
       <PhoneInput
-        country={"cr"}
+        country={defaultCountry}
         value={formData.phone}
         onChange={(value) => setFormData((prev) => ({ ...prev, phone: value.replace(/\D/g, "") }))}
         inputProps={{

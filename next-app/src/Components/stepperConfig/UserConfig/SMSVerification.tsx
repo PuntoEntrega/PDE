@@ -151,6 +151,8 @@ const InlineAlert = ({ message, type = "error" }: { message: string | null; type
 export function SMSVerification({ userId, initialVerified, initialPhone, onVerified }: SMSVerificationProps) {
     const { toast } = useToast()
 
+    const [defaultCountry, setDefaultCountry] = useState<string>("")
+
     const [step, setStep] = useState<"idle" | "enter-phone" | "sent" | "verifying" | "verified">(
         initialVerified ? "verified" : "idle",
     )
@@ -163,6 +165,23 @@ export function SMSVerification({ userId, initialVerified, initialPhone, onVerif
     const [isVerifying, setIsVerifying] = useState(false)
     const [cooldown, setCooldown] = useState(0)
     const cooldownRef = useRef<NodeJS.Timer | null>(null)
+
+    // 2) Detectar país via IP
+    useEffect(() => {
+        fetch("https://ipapi.co/json/")
+            .then((res) => res.json())
+            .then((data) => {
+                if (data && data.country_code) {
+                    setDefaultCountry(data.country_code.toLowerCase())
+                } else {
+                    setDefaultCountry("us")
+                }
+            })
+            .catch(() => {
+                setDefaultCountry("us")
+            })
+            
+    }, [])
 
     useEffect(() => {
         if (initialVerified) {
@@ -286,6 +305,8 @@ export function SMSVerification({ userId, initialVerified, initialPhone, onVerif
             setIsVerifying(false)
         }
     }
+
+    console.log("spu el pais",defaultCountry);
 
     // --------------------------------------------
     // 3) Cancelar / Cambiar número de teléfono
@@ -418,7 +439,7 @@ export function SMSVerification({ userId, initialVerified, initialPhone, onVerif
               `}</style>
                             <div className="custom-phone-input">
                                 <PhoneInput
-                                    country={"cr"}
+                                    country={defaultCountry}
                                     value={phoneFull}
                                     onChange={(value) => setPhoneFull(value.replace(/\D/g, ""))}
                                     inputProps={{
