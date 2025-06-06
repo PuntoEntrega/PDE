@@ -36,7 +36,7 @@ import {
 import { z } from "zod"
 import { UserIcon } from "lucide-react"
 import { useUser } from "@/context/UserContext"
-import { useAlert } from "@/Components/Alerts/use-alert"
+import { useAlert } from "@/Components/alerts/use-alert"
 import { useRouter } from "next/navigation"
 
 // ─────────────────────────────────────────────────────────────────────────────

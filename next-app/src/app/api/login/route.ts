@@ -59,6 +59,7 @@ export async function POST(req: NextRequest) {
         email: user.email,
         phone: user.phone,
         avatar_url: user.avatar_url,
+        status: user.status,
         active: user.active,
         verified: user.verified,
         created_at: user.created_at,

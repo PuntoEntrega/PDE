@@ -77,7 +77,7 @@ export async function middleware(req: NextRequest) {
       console.debug("[MW] Nivel insuficiente → /unauthorized");
       return NextResponse.redirect(new URL("/unauthorized", req.url));
     }
-
+ 
     // OK
     return NextResponse.next();
   } catch (err) {

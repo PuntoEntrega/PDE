@@ -54,6 +54,7 @@ export async function PATCH(
         phone: updatedUser.phone,
         avatar_url: updatedUser.avatar_url,
         active: updatedUser.active,
+        status: updatedUser.status,
         created_at: updatedUser.created_at,
         verified:   updatedUser.verified,
         updated_at: updatedUser.updated_at,
