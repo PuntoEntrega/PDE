@@ -1,7 +1,7 @@
 "use client"
 
 import { ResetPasswordForm } from "@/Components/Login/reset-password"
-import { AlertProvider } from "@/Components/Alerts/alert-provider"
+import { AlertProvider } from "@/Components/alerts/alert-provider"
 import "./../login/index.css" // Reutiliza los estilos del login si están ahí
 
 export default function ResetPasswordPage() {

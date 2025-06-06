@@ -13,9 +13,9 @@ export async function PATCH(
   try {
     const formData = await req.formData();
     const username = formData.get("username") as string;
-    const email    = formData.get("email")    as string;
-    const phone    = formData.get("phone")    as string;
-    const file     = formData.get("avatar")   as File | null;
+    const email = formData.get("email") as string;
+    const phone = formData.get("phone") as string;
+    const file = formData.get("avatar") as File | null;
 
     let avatar_url: string | undefined;
     if (file && file.size) {
@@ -28,8 +28,15 @@ export async function PATCH(
 
     const updatedUser = await prisma.users.update({
       where: { id },
-      data:  dataToUpdate,
-      include: { Roles: true },             // 👈  para traer nombre del rol
+      data: dataToUpdate,
+      include: {
+        Roles: {
+          select: {
+            name: true,
+            level: true,
+          },
+        },
+      },            // 👈  para traer nombre del rol
     });
 
     /* ----  Nuevo JWT  ---- */
@@ -38,14 +45,15 @@ export async function PATCH(
       {
         sub: updatedUser.id,
         role: updatedUser.Roles?.name,
+        level: updatedUser.Roles?.level,
         document_type_id: updatedUser.document_type_id,
         first_name: updatedUser.first_name,
-        last_name:  updatedUser.last_name,
-        username:   updatedUser.username,
-        email:      updatedUser.email,
-        phone:      updatedUser.phone,
+        last_name: updatedUser.last_name,
+        username: updatedUser.username,
+        email: updatedUser.email,
+        phone: updatedUser.phone,
         avatar_url: updatedUser.avatar_url,
-        active:     updatedUser.active,
+        active: updatedUser.active,
         created_at: updatedUser.created_at,
         verified:   updatedUser.verified,
         updated_at: updatedUser.updated_at,

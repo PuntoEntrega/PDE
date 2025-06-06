@@ -1,5 +1,3 @@
-"use client"
-
 import { useState } from "react"
 import { Sidebar } from "@/Components/Sidebar/Sidebar"
 import { ConfigurationStepper } from "@/Components/stepperConfig/steppers/ConfigurationStepper"

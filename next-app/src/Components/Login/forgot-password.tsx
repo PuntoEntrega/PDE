@@ -7,8 +7,8 @@ import { Button } from "@/Components/ui/button"
 import { Card, CardContent } from "@/Components/ui/card"
 import { Input } from "@/Components/ui/input"
 import Image from "next/image"
-import { useAlert } from "@/Components/Alerts/use-alert"
-import { forgotPasswordSchema, type ForgotPasswordFormData } from "../../../lib/Validations/auth"
+import { useAlert } from "@/Components/alerts/use-alert"
+import { forgotPasswordSchema, type ForgotPasswordFormData } from "../../../lib/validations/auth"
 
 interface ForgotPasswordProps {
   onBack: () => void
