@@ -7,6 +7,8 @@ import { Button } from "@/Components/ui/button"
 import { Input } from "@/Components/ui/input"
 import { SMSVerification } from "@/Components/stepperConfig/UserConfig/SMSVerification"
 import { jwtDecode } from "jwt-decode";
+import PhoneInput from "react-phone-input-2"
+import "react-phone-input-2/lib/style.css"
 import {
   Camera,
   LockKeyhole,
@@ -49,6 +51,7 @@ interface UserData {
   phone?: string
   avatar_url?: string
   role_id: string
+  verified: boolean
   // Campos adicionales que no se muestran pero podrían ser útiles
   company_name?: string
 }
@@ -73,7 +76,7 @@ const profileSchema = z.object({
   email: z.string().email("Correo electrónico inválido"),
   phone: z
     .string()
-    .regex(/^(\d{4}\d{4})?$/, "Formato inválido. Ej: 12345678 o vacío")
+    .regex(/^\d{8,13}$/, "Formato inválido. Ej: 50688881234 o vacío")
     .optional()
     .or(z.literal("")),
 })
@@ -115,20 +118,8 @@ export function ProfileConfigForm({
     email: "",
     phone: "",
   })
+  const [defaultCountry, setDefaultCountry] = useState<string>("")
 
-  console.log(formData);
-
-  useEffect(() => {
-    if (user) {
-      setFormData({
-        username: user.username || "",
-        email: user.email || "",
-        phone: user.phone || "",
-      });
-      setProfileImage(user.avatar_url || null);
-      setIsSmsVerified(user.verified || false)
-    }
-  }, [user]);
 
   // Cargar datos del usuario cuando el componente se monta o los datos iniciales cambian
   useEffect(() => {
@@ -136,11 +127,42 @@ export function ProfileConfigForm({
       setFormData({
         username: initialUserData.username,
         email: initialUserData.email,
-        phone: initialUserData.phone || "",
+        phone: initialUserData.phone ?? "",
       })
       setProfileImage(initialUserData.avatar_url || null)
+      setIsSmsVerified(initialUserData.verified || false)
     }
   }, [initialUserData])
+
+  useEffect(() => {
+    fetch("https://ipapi.co/json/")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && data.country_code) {
+          setDefaultCountry(data.country_code.toLowerCase())
+        } else {
+          setDefaultCountry("us")
+        }
+      })
+      .catch(() => {
+        setDefaultCountry("us")
+      })
+  }, [])
+
+  useEffect(() => {
+    if (user) {
+      setTimeout(() => {
+
+        setFormData({
+          username: user.username || "",
+          email: user.email || "",
+          phone: user.phone ?? "",
+        });
+        setProfileImage(user.avatar_url || null);
+        setIsSmsVerified(user.verified || false)
+      }, 1200);
+    }
+  }, [user]);
 
   const validateField = (name: string, value: string) => {
     try {
@@ -257,6 +279,11 @@ export function ProfileConfigForm({
       console.error(err);
       toast({ title: "Error al guardar", description: "Hubo un problema.", variant: "destructive" });
     }
+  };
+
+  const handleSaveandNext = async () => {
+    handleSave()
+    onNext()
   };
 
 
@@ -400,40 +427,65 @@ export function ProfileConfigForm({
 
             <div>
               <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
-                Teléfono <span className="text-xs text-gray-500">(Opcional)</span>
+                Teléfono <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  id="phone"
-                  name="phone"
-                  type="tel"
-                  placeholder="Ej: 8888-8888"
-                  className={`w-full h-10 bg-white border-gray-300 pl-10 focus:ring-blue-500 focus:border-blue-500 rounded-md ${errors.phone && touched.phone ? "border-red-500 focus:ring-red-500" : ""
-                    }`}
-                  value={formData.phone}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                />
+                <style jsx global>{`
+      .custom-phone-input .react-tel-input { width: 100%; }
+      .custom-phone-input .react-tel-input .form-control {
+        width: 100%; height: 44px; padding: 0 0 0 52px; border: 2px solid #d1d5db;
+        border-radius: 8px; font-size: 16px; background: white; transition: all 0.2s ease;
+      }
+      .custom-phone-input .react-tel-input .form-control:focus {
+        border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); outline: none;
+      }
+      .custom-phone-input .react-tel-input .flag-dropdown {
+        border: 2px solid #d1d5db; border-right: none; border-radius: 8px 0 0 8px;
+        background: white; height: 44px;
+      }
+      .custom-phone-input .react-tel-input .flag-dropdown:hover { background: #f9fafb; }
+      .custom-phone-input .react-tel-input .flag-dropdown.open { border-color: #3b82f6; }
+      .custom-phone-input .react-tel-input .selected-flag { padding: 0 8px 0 12px; height: 40px; }
+      .custom-phone-input .react-tel-input .selected-flag .arrow { border-top-color: #6b7280; }
+      .custom-phone-input .country-list {
+        border-radius: 8px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e5e7eb; max-height: 250px; z-index: 9999;
+      }
+      .custom-phone-input .country-list .search { padding: 8px 12px; border-bottom: 1px solid #e5e7eb; background: #f9fafb; }
+      .custom-phone-input .country-list .search input {
+        width: 100%; padding: 6px 8px; border: 1px solid #d1d5db;
+        border-radius: 4px; font-size: 14px;
+      }
+      .custom-phone-input .country-list .country { padding: 10px 12px; display: flex; align-items: center; }
+      .custom-phone-input .country-list .country:hover { background: #f3f4f6; }
+      .custom-phone-input .country-list .country.highlight { background: #dbeafe; }
+      .custom-phone-input .country-list .country .country-name { margin-left: 8px; font-size: 14px; }
+      .custom-phone-input .country-list .country .dial-code { margin-left: auto; font-size: 13px; color: #6b7280; }
+    `}</style>
+                <div className="custom-phone-input">
+                  <PhoneInput
+                    country={defaultCountry}
+                    value={formData.phone}
+                    onChange={(value) => setFormData((prev) => ({ ...prev, phone: value.replace(/\D/g, "") }))}
+                    inputProps={{
+                      name: "phone",
+                      required: true,
+                      id: "phone-input-field",
+                      placeholder: "Ingresa tu número de teléfono",
+                    }}
+                    containerClass="w-full"
+                    dropdownClass="z-50"
+                    preferredCountries={["cr", "us", "mx", "gt", "ni", "pa", "hn", "sv", "bz"]}
+                    enableSearch={true}
+                    searchPlaceholder="Buscar país o código..."
+                    searchNotFound="No se encontró el país"
+                  />
+                </div>
               </div>
               {errors.phone && touched.phone && <p className="mt-1 text-xs text-red-500">{errors.phone}</p>}
             </div>
           </div>
-
-          
-        {/* Aquí integramos el componente SMSVerification */}
-         <div className="mt-6">
-           <SMSVerification
-             userId={user?.sub}
-             initialVerified={isSmsVerified}
-             onVerified={(updatedUser) => {
-               setIsSmsVerified(true)
-               // Actualizamos el contexto de usuario con la info nueva
-               setUser(updatedUser)
-             }}
-           />
-         </div>
-
         </div>
 
         {/* Seguridad */}
@@ -454,6 +506,19 @@ export function ProfileConfigForm({
             <p className="ml-4 text-xs text-gray-500">
               Mantén tu cuenta segura actualizando tu contraseña periódicamente.
             </p>
+          </div>
+          {/* Aquí integramos el componente SMSVerification */}
+          <div className="pt-6">
+            <SMSVerification
+              userId={user?.sub}
+              initialVerified={isSmsVerified}
+              initialPhone={formData.phone}
+              onVerified={(updatedUser) => {
+                setIsSmsVerified(true)
+                // Actualizamos el contexto de usuario con la info nueva
+                setUser(updatedUser)
+              }}
+            />
           </div>
         </div>
 
@@ -478,7 +543,9 @@ export function ProfileConfigForm({
             </Button>
             <Button
               className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 text-sm flex-1 sm:flex-none"
-              onClick={onNext}
+              onClick={
+                handleSaveandNext
+              }
               disabled={isSaving}
             >
               Siguiente

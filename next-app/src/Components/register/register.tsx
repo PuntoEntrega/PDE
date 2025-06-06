@@ -4,10 +4,12 @@ import React, { useEffect, useState } from "react"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
 import { register } from "@/Services/register"
-import { registerSchema, type RegisterFormData } from "../../../lib/validations/auth"
-import { useAlert } from "@/Components/alerts/use-alert"
+import { registerSchema, type RegisterFormData } from "../../../lib/Validations/auth"
+import { useAlert } from "@/Components/Alerts/use-alert"
 import { Card, CardContent } from "@/Components/ui/card"
 import { Input } from "@/Components/ui/input"
+import PhoneInput from "react-phone-input-2"
+import "react-phone-input-2/lib/style.css"
 import { Button } from "@/Components/ui/button"
 import {
   CreditCard,
@@ -39,9 +41,26 @@ export function RegisterForm() {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [touched, setTouched] = useState<Record<string, boolean>>({})
   const [isLoading, setIsLoading] = useState(false)
+  const [defaultCountry, setDefaultCountry] = useState<string>("")
 
   const { showAlert } = useAlert()
   const router = useRouter()
+
+    // 2) Detectar país via IP
+  useEffect(() => {
+    fetch("https://ipapi.co/json/")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data && data.country_code) {
+          setDefaultCountry(data.country_code.toLowerCase())
+        } else {
+          setDefaultCountry("us")
+        }
+      })
+      .catch(() => {
+        setDefaultCountry("us")
+      })
+  }, [])
 
   // Carga dinámicamente los tipos de documento
   useEffect(() => {
@@ -176,11 +195,10 @@ export function RegisterForm() {
                 onChange={handleChange}
                 onBlur={handleBlur}
                 disabled={isLoading}
-                className={`w-full h-11 pl-10 border-gray-200 rounded-lg focus:ring-blue-500 ${
-                  errors.identification_number && touched.identification_number
+                className={`w-full h-11 pl-10 border-gray-200 rounded-lg focus:ring-blue-500 ${errors.identification_number && touched.identification_number
                     ? "border-red-500"
                     : ""
-                }`}
+                  }`}
               />
             </div>
             {errors.identification_number && touched.identification_number && (
@@ -206,11 +224,10 @@ export function RegisterForm() {
                   onChange={handleChange}
                   onBlur={handleBlur}
                   disabled={isLoading}
-                  className={`w-full h-11 pl-10 border-gray-200 rounded-lg focus:ring-blue-500 ${
-                    errors.first_name && touched.first_name
+                  className={`w-full h-11 pl-10 border-gray-200 rounded-lg focus:ring-blue-500 ${errors.first_name && touched.first_name
                       ? "border-red-500"
                       : ""
-                  }`}
+                    }`}
                 />
               </div>
               {errors.first_name && touched.first_name && (
@@ -231,11 +248,10 @@ export function RegisterForm() {
                 onChange={handleChange}
                 onBlur={handleBlur}
                 disabled={isLoading}
-                className={`w-full h-11 border-gray-200 rounded-lg focus:ring-blue-500 ${
-                  errors.last_name && touched.last_name
+                className={`w-full h-11 border-gray-200 rounded-lg focus:ring-blue-500 ${errors.last_name && touched.last_name
                     ? "border-red-500"
                     : ""
-                }`}
+                  }`}
               />
               {errors.last_name && touched.last_name && (
                 <p className="mt-1 text-xs text-red-500">
@@ -261,9 +277,8 @@ export function RegisterForm() {
                   onChange={handleChange}
                   onBlur={handleBlur}
                   disabled={isLoading}
-                  className={`w-full h-11 pl-10 border-gray-200 rounded-lg focus:ring-blue-500 ${
-                    errors.email && touched.email ? "border-red-500" : ""
-                  }`}
+                  className={`w-full h-11 pl-10 border-gray-200 rounded-lg focus:ring-blue-500 ${errors.email && touched.email ? "border-red-500" : ""
+                    }`}
                 />
               </div>
               {errors.email && touched.email && (
@@ -279,18 +294,59 @@ export function RegisterForm() {
               </label>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  name="phone"
-                  type="tel"
-                  placeholder="1234-5678"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  onBlur={handleBlur}
-                  disabled={isLoading}
-                  className={`w-full h-11 pl-10 border-gray-200 rounded-lg focus:ring-blue-500 ${
-                    errors.phone && touched.phone ? "border-red-500" : ""
-                  }`}
-                />
+                <style jsx global>{`
+       .custom-phone-input .react-tel-input { width: 100%; }
+       .custom-phone-input .react-tel-input .form-control {
+         width: 100%; height: 44px; padding: 0 0 0 52px; border: 2px solid #d1d5db;
+         border-radius: 8px; font-size: 16px; background: white; transition: all 0.2s ease;
+       }
+       .custom-phone-input .react-tel-input .form-control:focus {
+         border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); outline: none;
+       }
+       .custom-phone-input .react-tel-input .flag-dropdown {
+         border: 2px solid #d1d5db; border-right: none; border-radius: 8px 0 0 8px;
+         background: white; height: 44px;
+       }
+       .custom-phone-input .react-tel-input .flag-dropdown:hover { background: #f9fafb; }
+       .custom-phone-input .react-tel-input .flag-dropdown.open { border-color: #3b82f6; }
+       .custom-phone-input .react-tel-input .selected-flag { padding: 0 8px 0 12px; height: 40px; }
+       .custom-phone-input .react-tel-input .selected-flag .arrow { border-top-color: #6b7280; }
+       .custom-phone-input .country-list {
+         border-radius: 8px; box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+         border: 1px solid #e5e7eb; max-height: 250px; z-index: 9999;
+       }
+       .custom-phone-input .country-list .search { padding: 8px 12px; border-bottom: 1px solid #e5e7eb; background: #f9fafb; }
+       .custom-phone-input .country-list .search input {
+         width: 100%; padding: 6px 8px; border: 1px solid #d1d5db;
+         border-radius: 4px; font-size: 14px;
+       }
+       .custom-phone-input .country-list .country { padding: 10px 12px; display: flex; align-items: center; }
+       .custom-phone-input .country-list .country:hover { background: #f3f4f6; }
+       .custom-phone-input .country-list .country.highlight { background: #dbeafe; }
+       .custom-phone-input .country-list .country .country-name { margin-left: 8px; font-size: 14px; }
+       .custom-phone-input .country-list .country .dial-code { margin-left: auto; font-size: 13px; color: #6b7280; }
+     `}</style>
+                <div className="custom-phone-input">
+                  <PhoneInput
+                    country={defaultCountry}
+                    value={formData.phone}
+                    onChange={(value) =>
+                      setFormData((prev) => ({ ...prev, phone: value.replace(/\D/g, "") }))
+                    }
+                    inputProps={{
+                      name: "phone",
+                      required: false,
+                      id: "phone-input-field",
+                      placeholder: "Ingresa tu número de teléfono",
+                    }}
+                    containerClass="w-full"
+                    dropdownClass="z-50"
+                    preferredCountries={["cr", "us", "mx", "gt", "ni", "pa", "hn", "sv", "bz"]}
+                    enableSearch={true}
+                    searchPlaceholder="Buscar país o código..."
+                    searchNotFound="No se encontró el país"
+                  />
+                </div>
               </div>
               {errors.phone && touched.phone && (
                 <p className="mt-1 text-xs text-red-500">{errors.phone}</p>
@@ -338,8 +394,8 @@ export function RegisterForm() {
                 cuenta...
               </>
             ) : (
-                "Crear cuenta"
-              )}
+              "Crear cuenta"
+            )}
           </Button>
 
           <div className="text-center mt-4">

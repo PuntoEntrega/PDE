@@ -41,6 +41,7 @@ interface SessionPayload {
   phone: string
   avatar_url: string
   active: boolean
+  verified: boolean
   created_at: string | Date
   updated_at: string | Date
 }

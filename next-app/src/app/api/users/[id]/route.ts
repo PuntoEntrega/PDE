@@ -6,9 +6,9 @@ import jwt from "jsonwebtoken";
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }   //  ✅  ya no es Promise
+   { params }: { params: Promise<{ id: string }> }    //  ✅  ya no es Promise
 ) {
-  const { id } = params;
+  const { id } = await params;
 
   try {
     const formData = await req.formData();
@@ -55,6 +55,7 @@ export async function PATCH(
         avatar_url: updatedUser.avatar_url,
         active: updatedUser.active,
         created_at: updatedUser.created_at,
+        verified:   updatedUser.verified,
         updated_at: updatedUser.updated_at,
         identification_number: updatedUser.identification_number,
       },
