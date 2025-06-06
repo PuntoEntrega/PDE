@@ -8,6 +8,7 @@ export default async function Home() {
   if (session) {
     redirect("/dashboard") // o el dashboard según el rol si quieres
   } else {
+    console.log('app');
     redirect("/login")
   }
 

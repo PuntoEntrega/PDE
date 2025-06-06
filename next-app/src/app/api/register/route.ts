@@ -2,7 +2,7 @@ import bcrypt from "bcrypt";
 import { randomBytes } from "crypto";
 import prisma from "@/lib/prisma";
 import { sendEmailWithMandrill } from "@/lib/messaging/email";
-import { sendSMS } from "@/lib/messaging/sms";
+import { sendSms } from "@/lib/messaging/sms";
 
 const SALT_ROUNDS = Number(process.env.SALT_ROUNDS ?? 10);
 const DEFAULT_ROLE_ID = process.env.DEFAULT_ROLE_ID;
@@ -69,7 +69,7 @@ export async function POST(request: Request) {
     if (email) {
       await sendEmailWithMandrill(email, "Tu acceso a Punto Entrega", message);
     } else if (phone) {
-      await sendSMS(phone, message);
+      await sendSms(phone, message);
     }
 
     const payload =

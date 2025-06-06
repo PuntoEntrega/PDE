@@ -31,6 +31,7 @@ export async function POST(req: Request) {
             {
                 sub: user.id,
                 email: user.email,
+                
             },
             process.env.JWT_SECRET!,
             { expiresIn: "30m" }

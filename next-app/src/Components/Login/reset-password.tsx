@@ -7,7 +7,7 @@ import { Eye, EyeOff, AlertCircle, CheckCircle } from "lucide-react"
 import { Button } from "@/Components/ui/button"
 import { Card, CardContent } from "@/Components/ui/card"
 import { Input } from "@/Components/ui/input"
-import { useAlert } from "@/Components/Alerts/use-alert"
+import { useAlert } from "@/Components/alerts/use-alert"
 import { useSearchParams } from "next/navigation"
 import { useRouter } from "next/navigation"
 

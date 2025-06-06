@@ -6,6 +6,7 @@ import { createContext, useContext } from "react"
 export interface User {
   sub: string
   role: string
+  level: number
   document_type_id: string
   identification_number: string
   first_name: string
