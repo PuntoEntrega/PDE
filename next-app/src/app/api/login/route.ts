@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
         phone: user.phone,
         avatar_url: user.avatar_url,
         active: user.active,
-        verified: user.verified
+        verified: user.verified,
         created_at: user.created_at,
         updated_at: user.updated_at,
         identification_number: user.identification_number,

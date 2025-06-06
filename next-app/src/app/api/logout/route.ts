@@ -1,11 +1,29 @@
-// src/app/api/logout/route.ts
-import { NextResponse } from "next/server"
-import { cookies } from "next/headers"
+// src/app/api/logout/route.ts   (Next.js App Router)
+// o si usas Pages Router: src/pages/api/logout.ts
 
-export async function POST() {
-  /* -- Borra la cookie -- */
-  cookies().delete("token", { path: "/" })   // asegúrate de usar el mismo path
+import { NextResponse } from "next/server";
+import { serialize } from "cookie";
 
-  /* Puedes devolver lo que quieras; un 204 también valdría */
-  return NextResponse.json({ ok: true })
+export async function GET() {
+  // Serializa una cookie “token” vacía con maxAge=0 para que el navegador la elimine
+  const expiredCookie = serialize("token", "", {
+    httpOnly: true,
+    path: "/",
+    maxAge: 0,         // Expirar inmediatamente
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+  });
+
+  // Devuelves la respuesta JSON o un redirect, pero en el encabezado pones Set-Cookie
+  const response = NextResponse.json(
+    { ok: true },
+    {
+      status: 200,
+      headers: {
+        "Set-Cookie": expiredCookie,
+      },
+    }
+  );
+
+  return response;
 }

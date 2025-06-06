@@ -12,9 +12,9 @@ export const RoleLevels = {
 
 // routeMinLevels.ts
 export const routeAllowedLevels: Record<string, number[]> = {
-  "/dashboard": [4, 5, 6],
+  "/dashboard": [4, 5, 6, 7],
   "/configuration/profile": [3, 4, 5, 7],
-  "/configuration/pde": [3, 4, 5, 6, 7],
   "/configuration/company": [3, 4, 5, 6, 7],
-  "/billing": [3, 4, 5, 6, 7],
+  "/configuration/pde": [3, 4, 5, 6, 7],
+  "/": [1, 2, 3, 4, 5, 6, 7],
 };

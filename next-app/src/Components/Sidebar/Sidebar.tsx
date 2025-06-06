@@ -57,10 +57,15 @@ export function Sidebar({ children }: { children: React.ReactNode }) {
     setIsSidebarOpen(!isSidebarOpen)
   }
 
-  const logout = () => {
-    localStorage.removeItem('token')
-    router.push('/login')
-  }
+  const logout = async () => {
+    await fetch("/api/logout", {
+      method: "GET",
+      credentials: "include", // para asegurarte de enviar las cookies junto con la petición (aunque no sean necesarias aquí)
+    });
+    localStorage.removeItem("token");
+    console.log('Cookie token removido');
+    router.push("/login");
+  };
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
