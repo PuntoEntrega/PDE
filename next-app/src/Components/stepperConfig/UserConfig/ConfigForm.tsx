@@ -120,20 +120,6 @@ export function ProfileConfigForm({
   })
   const [defaultCountry, setDefaultCountry] = useState<string>("")
 
-  useEffect(() => {
-    if (user) {
-      setFormData({
-        username: user.username || "",
-        email: user.email || "",
-        phone: user.phone || "",
-      });
-      setProfileImage(user.avatar_url || null);
-      setIsSmsVerified(user.verified || false)
-      console.log(isSmsVerified);
-      
-      
-    }
-  }, [user]);
 
   // Cargar datos del usuario cuando el componente se monta o los datos iniciales cambian
   useEffect(() => {
@@ -141,14 +127,13 @@ export function ProfileConfigForm({
       setFormData({
         username: initialUserData.username,
         email: initialUserData.email,
-        phone: initialUserData.phone || "",
+        phone: initialUserData.phone ?? "",
       })
       setProfileImage(initialUserData.avatar_url || null)
       setIsSmsVerified(initialUserData.verified || false)
     }
   }, [initialUserData])
 
-    // 2) Detectar país via IP
   useEffect(() => {
     fetch("https://ipapi.co/json/")
       .then((res) => res.json())
@@ -163,6 +148,21 @@ export function ProfileConfigForm({
         setDefaultCountry("us")
       })
   }, [])
+
+  useEffect(() => {
+    if (user) {
+      setTimeout(() => {
+
+        setFormData({
+          username: user.username || "",
+          email: user.email || "",
+          phone: user.phone ?? "",
+        });
+        setProfileImage(user.avatar_url || null);
+        setIsSmsVerified(user.verified || false)
+      }, 1200);
+    }
+  }, [user]);
 
   const validateField = (name: string, value: string) => {
     try {
@@ -281,9 +281,9 @@ export function ProfileConfigForm({
     }
   };
 
-    const handleSaveandNext = async () => {
-      handleSave()
-      onNext()
+  const handleSaveandNext = async () => {
+    handleSave()
+    onNext()
   };
 
 
@@ -431,7 +431,7 @@ export function ProfileConfigForm({
               </label>
               <div className="relative">
                 <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
- <style jsx global>{`
+                <style jsx global>{`
       .custom-phone-input .react-tel-input { width: 100%; }
       .custom-phone-input .react-tel-input .form-control {
         width: 100%; height: 44px; padding: 0 0 0 52px; border: 2px solid #d1d5db;
@@ -463,25 +463,25 @@ export function ProfileConfigForm({
       .custom-phone-input .country-list .country .country-name { margin-left: 8px; font-size: 14px; }
       .custom-phone-input .country-list .country .dial-code { margin-left: auto; font-size: 13px; color: #6b7280; }
     `}</style>
-    <div className="custom-phone-input">
-      <PhoneInput
-        country={defaultCountry}
-        value={formData.phone}
-        onChange={(value) => setFormData((prev) => ({ ...prev, phone: value.replace(/\D/g, "") }))}
-        inputProps={{
-          name: "phone",
-          required: true,
-          id: "phone-input-field",
-          placeholder: "Ingresa tu número de teléfono",
-        }}
-        containerClass="w-full"
-        dropdownClass="z-50"
-        preferredCountries={["cr", "us", "mx", "gt", "ni", "pa", "hn", "sv", "bz"]}
-        enableSearch={true}
-        searchPlaceholder="Buscar país o código..."
-        searchNotFound="No se encontró el país"
-      />
-    </div>
+                <div className="custom-phone-input">
+                  <PhoneInput
+                    country={defaultCountry}
+                    value={formData.phone}
+                    onChange={(value) => setFormData((prev) => ({ ...prev, phone: value.replace(/\D/g, "") }))}
+                    inputProps={{
+                      name: "phone",
+                      required: true,
+                      id: "phone-input-field",
+                      placeholder: "Ingresa tu número de teléfono",
+                    }}
+                    containerClass="w-full"
+                    dropdownClass="z-50"
+                    preferredCountries={["cr", "us", "mx", "gt", "ni", "pa", "hn", "sv", "bz"]}
+                    enableSearch={true}
+                    searchPlaceholder="Buscar país o código..."
+                    searchNotFound="No se encontró el país"
+                  />
+                </div>
               </div>
               {errors.phone && touched.phone && <p className="mt-1 text-xs text-red-500">{errors.phone}</p>}
             </div>
@@ -512,7 +512,7 @@ export function ProfileConfigForm({
             <SMSVerification
               userId={user?.sub}
               initialVerified={isSmsVerified}
-              initialPhone={formData.phone} 
+              initialPhone={formData.phone}
               onVerified={(updatedUser) => {
                 setIsSmsVerified(true)
                 // Actualizamos el contexto de usuario con la info nueva

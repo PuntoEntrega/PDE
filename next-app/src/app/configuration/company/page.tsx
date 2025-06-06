@@ -4,7 +4,6 @@ import { useState } from "react"
 import { Sidebar } from "@/Components/Sidebar/Sidebar"
 import { ConfigurationStepper } from "@/Components/stepperConfig/steppers/ConfigurationStepper"
 import { CompanyGeneralForm } from "@/Components/stepperConfig/CompanieConfig/company-general-form"
-import { CompanyBillingForm } from "@/Components/stepperConfig/CompanieConfig/company-billing-form"
 import { Toaster } from "@/Components/ui/toaster"
 import { useToast } from "@/Components/ui/use-toast"
 import { useRouter } from "next/navigation"
@@ -12,15 +11,13 @@ import { Button } from "@/Components/ui/button"
 import { ArrowLeft, ArrowRight } from "lucide-react"
 
 export default function CompanyConfigPage() {
-  const [activeTab, setActiveTab] = useState<"datos-generales" | "manejo-dinero">("datos-generales")
+  const [activeTab, setActiveTab] = useState("datos-generales")
   const [isSaving, setIsSaving] = useState(false)
   const { toast } = useToast()
   const router = useRouter()
 
   const [companyData, setCompanyData] = useState<any>(null)
   const [legalRepData, setLegalRepData] = useState<any>(null)
-  const [billingConfigData, setBillingConfigData] = useState<any>(null)
-  const [bankAccountData, setBankAccountData] = useState<any>(null)
 
   const handleSave = async (formData: any, formType: string) => {
     setIsSaving(true)
@@ -31,9 +28,6 @@ export default function CompanyConfigPage() {
     if (formType === "datosGenerales") {
       setCompanyData(formData.company)
       setLegalRepData(formData.legalRepresentative)
-    } else if (formType === "manejoDinero") {
-      setBillingConfigData(formData.billing)
-      setBankAccountData(formData.bankAccount)
     }
 
     toast({
@@ -79,36 +73,16 @@ export default function CompanyConfigPage() {
                 >
                   Datos Generales
                 </button>
-                <button
-                  onClick={() => setActiveTab("manejo-dinero")}
-                  className={`py-3 sm:py-4 px-3 sm:px-4 font-medium text-sm whitespace-nowrap border-b-2 transition-colors ${
-                    activeTab === "manejo-dinero"
-                      ? "border-blue-600 text-blue-600"
-                      : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                  }`}
-                >
-                  Manejo de Dinero y Facturación
-                </button>
               </nav>
             </div>
 
             <div className="p-4 sm:p-6">
-              {activeTab === "datos-generales" && (
                 <CompanyGeneralForm
                   initialCompanyData={companyData}
                   initialLegalRepData={legalRepData}
                   onSave={(data) => handleSave(data, "datosGenerales")}
                   isSaving={isSaving}
                 />
-              )}
-              {activeTab === "manejo-dinero" && (
-                <CompanyBillingForm
-                  initialBillingData={billingConfigData}
-                  initialBankAccountData={bankAccountData}
-                  onSave={(data) => handleSave(data, "manejoDinero")}
-                  isSaving={isSaving}
-                />
-              )}
             </div>
           </div>
 
