@@ -48,6 +48,7 @@ export async function POST(req: NextRequest) {
                 email: updatedUser.email,
                 phone: updatedUser.phone,
                 avatar_url: updatedUser.avatar_url,
+                status: updatedUser.status,
                 active: updatedUser.active,
                 created_at: updatedUser.created_at,
                 updated_at: updatedUser.updated_at,
