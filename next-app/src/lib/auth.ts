@@ -41,16 +41,14 @@ interface SessionPayload {
   phone: string
   avatar_url: string
   active: boolean
-  status: string
   verified: boolean
   created_at: string | Date
   updated_at: string | Date
 }
 
 export async function getSession(): Promise<SessionPayload | null> {
-
-  const cookieStore = cookies()
-  const token = (await cookieStore.get("token"))?.value  // ← await aquí
+  const cookieStore = await cookies()
+  const token = cookieStore.get('token')?.value
   if (!token) return null
 
   const JWT_SECRET = process.env.JWT_SECRET
