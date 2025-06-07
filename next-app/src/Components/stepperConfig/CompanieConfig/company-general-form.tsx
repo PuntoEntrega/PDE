@@ -483,7 +483,7 @@ export function CompanyGeneralForm({
                     accept="image/*"
                     className="hidden"
                     onChange={handleImageUpload}
-                    disabled={!isEditing}
+                    disabled={isDraft && !isEditing}
                   />
                 </div>
                 <div className="ml-6">
