@@ -1,4 +1,4 @@
-// src/app/dashboard/page.tsx (o donde tengas tu DashboardPage)
+// src/app/dashboard/page.tsx
 "use client"
 
 import logoAppConTexto from '../../../public/punto_entrega_logo.png'
@@ -36,11 +36,19 @@ export default function DashboardPage() {
     },
   ].map((step) => ({
     ...step,
-    completed: step.id < currentStep,
-    current: step.id === currentStep,
+    completed: step.id <= currentStep,  // todos hasta el actual incluidos
+    isCurrent: step.id === currentStep,
   }))
 
-  if (loading) return null  // o tu spinner
+  const isFinished = currentStep >= steps.length
+
+  // Texto y ruta dinámica del botón inferior
+  const buttonText = isFinished
+    ? "Ver status de solicitud"
+    : "Comenzar configuración"
+  const buttonHref = isFinished
+    ? "/configuration/status-info"
+    : steps.find(s => s.isCurrent)?.href || "/configuration/profile"
 
   return (
     <Sidebar>
@@ -49,20 +57,49 @@ export default function DashboardPage() {
           {/* Welcome Section */}
           <Card className="bg-white shadow-lg rounded-2xl p-8 mb-8 border-0 overflow-hidden">
             {/* ... tu contenido de bienvenida ... */}
+            <div className="flex flex-col md:flex-row items-center justify-between">
+              <div className="flex-1 text-center md:text-left mb-6 md:mb-0">
+                <div className="mb-6">
+                  <Image
+                    src={logoAppConTexto}
+                    alt="Punto Entrega"
+                    width={180}
+                    height={54}
+                    className="h-auto mx-auto md:mx-0"
+                  />
+                </div>
+                <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
+                  ¡Te damos la bienvenida a nuestro Sistema PdE!
+                </h1>
+                <p className="text-lg text-blue-700 leading-relaxed">
+                  En nuestro sistema podrás gestionar la entrega y recepción de paquetes directamente desde tu
+                  computadora o sistema móvil
+                </p>
+              </div>
+              <div className="hidden md:block relative">
+                <div className="w-64 h-64 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg overflow-hidden">
+                  <div className="absolute inset-0 bg-blue-600 opacity-20 rounded-full"></div>
+                  <PackageIcon className="w-32 h-32 text-white" />
+                </div>
+              </div>
+            </div>
           </Card>
 
           {/* Progress Section */}
           <div className="mb-8">
             <h2 className="text-2xl font-bold text-gray-800 mb-6">Completa tu configuración</h2>
             <div className="relative">
+              {/* Línea vertical */}
               <div className="absolute left-6 top-6 bottom-6 w-0.5 bg-gray-200"></div>
               <div className="space-y-6">
                 {steps.map((step) => (
                   <Card
                     key={step.id}
                     className={cn(
-                      "bg-white shadow-md rounded-xl p-6 border-0 relative",
-                      step.completed ? "bg-green-50" : step.current ? "bg-blue-50" : "bg-white",
+                      "bg-white shadow-md rounded-xl p-6 border-0 relative transition-colors",
+                      step.completed
+                        ? "bg-green-50"
+                        : "bg-white"
                     )}
                   >
                     <div className="flex items-start justify-between">
@@ -72,9 +109,7 @@ export default function DashboardPage() {
                             "w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg z-10",
                             step.completed
                               ? "bg-green-100 text-green-600"
-                              : step.current
-                                ? "bg-blue-100 text-blue-600 ring-4 ring-blue-50"
-                                : "bg-gray-100 text-gray-400",
+                              : "bg-gray-100 text-gray-400"
                           )}
                         >
                           {step.completed ? (
@@ -87,7 +122,9 @@ export default function DashboardPage() {
                           <h3
                             className={cn(
                               "font-semibold text-lg",
-                              step.completed ? "text-green-800" : step.current ? "text-blue-800" : "text-gray-800",
+                              step.completed
+                                ? "text-green-800"
+                                : "text-gray-800"
                             )}
                           >
                             {step.title}
@@ -95,7 +132,9 @@ export default function DashboardPage() {
                           <p
                             className={cn(
                               "text-sm mt-1",
-                              step.completed ? "text-green-600" : step.current ? "text-blue-600" : "text-gray-600",
+                              step.completed
+                                ? "text-green-600"
+                                : "text-gray-600"
                             )}
                           >
                             {step.description}
@@ -103,8 +142,8 @@ export default function DashboardPage() {
                         </div>
                       </div>
 
-                      {/* Flecha solo en el paso actual, y llevando a su href */}
-                      {step.current && (
+                      {/* Flecha solo si es el paso actual Y no es el último */}
+                      {step.isCurrent && !isFinished && (
                         <div className="flex items-center">
                           <div
                             onClick={() => router.push(step.href)}
@@ -121,16 +160,13 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Botón dinámico */}
+          {/* Action Button */}
           <div className="text-center">
             <Button
-              onClick={() => {
-                const nextHref = steps.find((s) => s.id === currentStep)?.href!
-                router.push(nextHref)
-              }}
+              onClick={() => router.push(buttonHref)}
               className="bg-blue-600 hover:bg-blue-700 text-white px-10 py-8 text-lg rounded-xl shadow-md hover:shadow-lg transition-all"
             >
-              {currentStep < 3 ? "Continuar configuración" : "Ver estado"}
+              {buttonText}
             </Button>
           </div>
         </div>
