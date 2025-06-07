@@ -48,6 +48,7 @@ interface SessionPayload {
 }
 
 export async function getSession(): Promise<SessionPayload | null> {
+
   const cookieStore = cookies()
   const token = (await cookieStore.get("token"))?.value  // ← await aquí
   if (!token) return null
