@@ -46,8 +46,8 @@ interface SessionPayload {
   updated_at: string | Date
 }
 
-export function getSession(): SessionPayload | null {
-  const cookieStore = cookies()
+export async function getSession(): Promise<SessionPayload | null> {
+  const cookieStore = await cookies()
   const token = cookieStore.get('token')?.value
   if (!token) return null
 
