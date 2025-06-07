@@ -27,6 +27,7 @@ model Companies {
   other_Companies      Companies[]             @relation("CompaniesToCompanies")
   CompanyBankAccounts  CompanyBankAccounts[]
   CompanyBillingConfig CompanyBillingConfig[]
+  CompanyStatusHistory CompanyStatusHistory[]
   DeliveryPoints       DeliveryPoints[]
   LegalRepresentatives LegalRepresentatives[]
 
@@ -281,30 +282,74 @@ model Senders {
 }
 
 model Users {
-  id                    String            @id @default(dbgenerated("(uuid())")) @db.VarChar(36)
-  document_type_id      String?           @db.VarChar(36)
-  identification_number String            @db.VarChar(40)
-  first_name            String            @db.VarChar(60)
-  last_name             String            @db.VarChar(60)
-  username              String            @db.VarChar(40)
-  email                 String            @db.VarChar(120)
-  phone                 String?           @db.VarChar(30)
-  avatar_url            String?           @db.VarChar(256)
-  role_id               String?           @db.VarChar(36)
-  password_hash         String            @db.VarChar(255)
-  active                Boolean?          @default(true)
-  created_at            DateTime?         @default(now()) @db.DateTime(0)
-  updated_at            DateTime?         @default(now()) @db.DateTime(0)
-  verified              Boolean?          @default(false)
-  Companies             Companies[]
-  DeliveryHistory       DeliveryHistory[]
-  Guides                Guides[]
-  Incidents             Incidents[]
-  DocumentTypes         DocumentTypes?    @relation(fields: [document_type_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Users_ibfk_1")
-  Roles                 Roles?            @relation(fields: [role_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Users_ibfk_2")
+  id                                                       String                 @id @default(dbgenerated("(uuid())")) @db.VarChar(36)
+  document_type_id                                         String?                @db.VarChar(36)
+  identification_number                                    String                 @db.VarChar(40)
+  first_name                                               String                 @db.VarChar(60)
+  last_name                                                String                 @db.VarChar(60)
+  username                                                 String                 @db.VarChar(40)
+  email                                                    String                 @db.VarChar(120)
+  phone                                                    String?                @db.VarChar(30)
+  avatar_url                                               String?                @db.VarChar(256)
+  role_id                                                  String?                @db.VarChar(36)
+  password_hash                                            String                 @db.VarChar(255)
+  active                                                   Boolean?               @default(true)
+  status                                                   Users_status?          @default(draft)
+  created_at                                               DateTime?              @default(now()) @db.DateTime(0)
+  updated_at                                               DateTime?              @default(now()) @db.DateTime(0)
+  verified                                                 Boolean?               @default(false)
+  Companies                                                Companies[]
+  CompanyStatusHistory                                     CompanyStatusHistory[]
+  DeliveryHistory                                          DeliveryHistory[]
+  Guides                                                   Guides[]
+  Incidents                                                Incidents[]
+  UserStatusHistory_UserStatusHistory_user_idToUsers       UserStatusHistory[]    @relation("UserStatusHistory_user_idToUsers")
+  UserStatusHistory_UserStatusHistory_changed_by_idToUsers UserStatusHistory[]    @relation("UserStatusHistory_changed_by_idToUsers")
+  DocumentTypes                                            DocumentTypes?         @relation(fields: [document_type_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Users_ibfk_1")
+  Roles                                                    Roles?                 @relation(fields: [role_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Users_ibfk_2")
 
   @@index([document_type_id], map: "document_type_id")
   @@index([role_id], map: "role_id")
+}
+
+model CompanyStatusHistory {
+  id              String    @id @default(dbgenerated("(uuid())")) @db.VarChar(36)
+  company_id      String    @db.VarChar(36)
+  changed_by_id   String    @db.VarChar(36)
+  previous_status String    @db.VarChar(20)
+  new_status      String    @db.VarChar(20)
+  reason          String    @db.VarChar(256)
+  created_at      DateTime? @default(now()) @db.DateTime(0)
+  Companies       Companies @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "CompanyStatusHistory_ibfk_1")
+  Users           Users     @relation(fields: [changed_by_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "CompanyStatusHistory_ibfk_2")
+
+  @@index([changed_by_id], map: "changed_by_id")
+  @@index([company_id], map: "company_id")
+}
+
+model Notifications {
+  id                String             @id @default(dbgenerated("(uuid())")) @db.VarChar(36)
+  title             String             @db.VarChar(100)
+  description       String?            @db.VarChar(255)
+  type              Notifications_type
+  related_entity_id String?            @db.VarChar(36)
+  seen              Boolean?           @default(false)
+  created_at        DateTime?          @default(now()) @db.DateTime(0)
+}
+
+model UserStatusHistory {
+  id                                           String    @id @default(dbgenerated("(uuid())")) @db.VarChar(36)
+  user_id                                      String    @db.VarChar(36)
+  changed_by_id                                String    @db.VarChar(36)
+  previous_status                              String    @db.VarChar(20)
+  new_status                                   String    @db.VarChar(20)
+  reason                                       String    @db.VarChar(256)
+  created_at                                   DateTime? @default(now()) @db.DateTime(0)
+  Users_UserStatusHistory_user_idToUsers       Users     @relation("UserStatusHistory_user_idToUsers", fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "UserStatusHistory_ibfk_1")
+  Users_UserStatusHistory_changed_by_idToUsers Users     @relation("UserStatusHistory_changed_by_idToUsers", fields: [changed_by_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "UserStatusHistory_ibfk_2")
+
+  @@index([changed_by_id], map: "changed_by_id")
+  @@index([user_id], map: "user_id")
 }
 
 enum CompanyBillingConfig_billing_type {
@@ -357,4 +402,19 @@ enum Packages_status {
   CANCELADO
   RECHAZADO
   INCIDENCIA
+}
+
+enum Notifications_type {
+  company_review_request
+  company_approved
+  company_rejected
+  company_deactivated
+}
+
+enum Users_status {
+  draft
+  under_review
+  active
+  inactive
+  rejected
 }

@@ -1,4 +1,3 @@
-
 // src/app/configuration/company/page.tsx
 
 import CompanyConfigClient from "./CompanyConfigClient"

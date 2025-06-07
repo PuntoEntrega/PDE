@@ -11,6 +11,7 @@ const PUBLIC_PREFIXES = [
   "/login",
   "/register",
   "/api/login",
+  "/api/logout",
   "/api/register",
   "/api/document-types",
   "/unauthorized",
@@ -76,7 +77,7 @@ export async function middleware(req: NextRequest) {
       console.debug("[MW] Nivel insuficiente → /unauthorized");
       return NextResponse.redirect(new URL("/unauthorized", req.url));
     }
-
+ 
     // OK
     return NextResponse.next();
   } catch (err) {

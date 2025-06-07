@@ -1,6 +1,5 @@
-// src/app/configuration/company/page.tsx
-import ProfileConfigClient from "./PDEConfigClient";
+import PdeConfigComponent from "./PDEConfigClient"
 
-export default function CompanyPage() {
-  return <ProfileConfigClient />;
+export default function PdePage() {
+  return <PdeConfigComponent />
 }
