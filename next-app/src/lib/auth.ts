@@ -47,9 +47,9 @@ interface SessionPayload {
   updated_at: string | Date
 }
 
-export function getSession(): SessionPayload | null {
+export async function getSession(): Promise<SessionPayload | null> {
   const cookieStore = cookies()
-  const token = cookieStore.get('token')?.value
+  const token = (await cookieStore.get("token"))?.value  // ← await aquí
   if (!token) return null
 
   const JWT_SECRET = process.env.JWT_SECRET

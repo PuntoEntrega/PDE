@@ -5,7 +5,7 @@ import prisma from "@/lib/prisma"
 export default async function StatusInfoRoutePage() {
   const user = await getSession()
 
-  const validStatuses: ValidStatus[] = ["draft", "under_review", "inactive", "rejected"]
+  const validStatuses: ValidStatus[] = ["draft", "under_review", "active", "inactive", "rejected"]
   const userStatus: ValidStatus = validStatuses.includes(user?.status as ValidStatus)
     ? (user?.status as ValidStatus)
     : "draft"
