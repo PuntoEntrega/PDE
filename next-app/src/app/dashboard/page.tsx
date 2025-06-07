@@ -1,3 +1,4 @@
+// src/app/dashboard/page.tsx (o donde tengas tu DashboardPage)
 "use client"
 
 import logoAppConTexto from '../../../public/punto_entrega_logo.png'
@@ -38,52 +39,25 @@ export default function DashboardPage() {
     completed: step.id < currentStep,
     current: step.id === currentStep,
   }))
+
+  if (loading) return null  // o tu spinner
+
   return (
     <Sidebar>
-      {/* <DashboardContent> */}
       <div className="min-h-full bg-gradient-to-br from-gray-50 to-blue-50/20">
         <div className="max-w-7xl mx-auto px-4 py-8">
           {/* Welcome Section */}
           <Card className="bg-white shadow-lg rounded-2xl p-8 mb-8 border-0 overflow-hidden">
-            <div className="flex flex-col md:flex-row items-center justify-between">
-              <div className="flex-1 text-center md:text-left mb-6 md:mb-0">
-                <div className="mb-6">
-                  <Image
-                    src={logoAppConTexto}
-                    alt="Punto Entrega"
-                    width={180}
-                    height={54}
-                    className="h-auto mx-auto md:mx-0"
-                  />
-                </div>
-                <h1 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
-                  ¡Te damos la bienvenida a nuestro Sistema PdE!
-                </h1>
-                <p className="text-lg text-blue-700 leading-relaxed">
-                  En nuestro sistema podrás gestionar la entrega y recepción de paquetes directamente desde tu
-                  computadora o sistema móvil
-                </p>
-              </div>
-              <div className="hidden md:block relative">
-                <div className="w-64 h-64 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg overflow-hidden">
-                  <div className="absolute inset-0 bg-blue-600 opacity-20 rounded-full"></div>
-                  <PackageIcon className="w-32 h-32 text-white" />
-                </div>
-                <div className="absolute -bottom-4 -right-4 w-32 h-32 bg-blue-100 rounded-full z-0"></div>
-                <div className="absolute -top-4 -left-4 w-16 h-16 bg-blue-100 rounded-full z-0"></div>
-              </div>
-            </div>
+            {/* ... tu contenido de bienvenida ... */}
           </Card>
 
           {/* Progress Section */}
           <div className="mb-8">
             <h2 className="text-2xl font-bold text-gray-800 mb-6">Completa tu configuración</h2>
             <div className="relative">
-              {/* Línea vertical conectora */}
               <div className="absolute left-6 top-6 bottom-6 w-0.5 bg-gray-200"></div>
-
               <div className="space-y-6">
-                {steps.map((step, index) => (
+                {steps.map((step) => (
                   <Card
                     key={step.id}
                     className={cn(
@@ -106,9 +80,7 @@ export default function DashboardPage() {
                           {step.completed ? (
                             <CheckCircle2 className="w-6 h-6" />
                           ) : (
-                            <div className="flex items-center justify-center">
-                              <span>{step.id}</span>
-                            </div>
+                            <span>{step.id}</span>
                           )}
                         </div>
                         <div className="ml-4 pt-1">
@@ -131,10 +103,13 @@ export default function DashboardPage() {
                         </div>
                       </div>
 
-                      {/* Flecha de acción - solo visible en el paso actual */}
+                      {/* Flecha solo en el paso actual, y llevando a su href */}
                       {step.current && (
                         <div className="flex items-center">
-                          <div onClick={() => router.push('/configuration/profile')} className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center shadow-md hover:shadow-lg hover:bg-blue-700 transition-all cursor-pointer">
+                          <div
+                            onClick={() => router.push(step.href)}
+                            className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center shadow-md hover:shadow-lg hover:bg-blue-700 transition-all cursor-pointer"
+                          >
                             <ArrowRight className="w-5 h-5 text-white" />
                           </div>
                         </div>
@@ -146,10 +121,16 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Action Button */}
+          {/* Botón dinámico */}
           <div className="text-center">
-            <Button onClick={() => router.push(steps.find(s => s.id === currentStep)?.href || "/configuration/profile")} className="bg-blue-600 hover:bg-blue-700 text-white px-10 py-8 text-lg rounded-xl shadow-md hover:shadow-lg transition-all">
-              Comenzar configuración
+            <Button
+              onClick={() => {
+                const nextHref = steps.find((s) => s.id === currentStep)?.href!
+                router.push(nextHref)
+              }}
+              className="bg-blue-600 hover:bg-blue-700 text-white px-10 py-8 text-lg rounded-xl shadow-md hover:shadow-lg transition-all"
+            >
+              {currentStep < 3 ? "Continuar configuración" : "Ver estado"}
             </Button>
           </div>
         </div>
