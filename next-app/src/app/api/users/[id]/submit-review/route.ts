@@ -2,6 +2,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { notificarAdminsUnderReview } from "@/lib/helpers/notifyAdmins";
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
   const userId = params.id;
@@ -32,6 +33,13 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
       where: { id: userId },
       data: { status: "under_review" }
     });
+
+    await notificarAdminsUnderReview({
+      first_name: user.first_name,
+      last_name: user.last_name,
+      email: user.email ?? undefined,
+      phone: user.phone ?? undefined,
+    })
 
     // Insertar en UserStatusHistory
     await prisma.userStatusHistory.create({

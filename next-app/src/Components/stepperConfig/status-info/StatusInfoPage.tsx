@@ -25,6 +25,7 @@ export default function StatusInfoPage({
 }: StatusInfoProps) {
     const router = useRouter()
     const { user, setUser } = useUser()
+    userStatus = user?.status 
 
     const renderContent = () => {
         switch (userStatus) {
@@ -35,7 +36,7 @@ export default function StatusInfoPage({
                     description:
                         `Tu cuenta se encuentra actualmente bajo revisión. Te notificaremos al correo ${user?.email} una vez se verifique la solicitud.`,
                     badge: <Badge variant="outline">En revisión</Badge>,
-                }
+                }   
             case "rejected":
                 return {
                     icon: <AlertCircle className="h-10 w-10 text-red-500" />,

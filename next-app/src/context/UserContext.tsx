@@ -16,6 +16,7 @@ export interface User {
   phone: string
   avatar_url: string | null
   active: boolean
+  status: string
   verified: boolean
   created_at: string
   updated_at: string
