@@ -1,251 +1,297 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { useForm, useFieldArray, Controller } from "react-hook-form"
+import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { companySchema, type CompanyFormData } from "@/lib/validations/company"
-import { createCompany, getDocumentTypes as fetchDocumentTypesAction } from "@/actions/company"
+import { z } from "zod"
 import { Button } from "@/Components/ui/button"
 import { Input } from "@/Components/ui/input"
-import { Label } from "@/Components/ui/label"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/Components/ui/form"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/Components/ui/select"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/Components/ui/card"
-import { toast } from "sonner"
-import { PlusCircle, Trash2 } from "lucide-react"
+import { useAlert } from "../alerts/use-alert"
+import { useEffect, useState } from "react"
+import { createCompany } from "@/api/companies" // Declare the createCompany variable
+
+const legalRepresentativeSchema = z.object({
+  full_name: z.string().min(3, "El nombre debe tener al menos 3 caracteres."),
+  document_type_id: z.string().min(1, "Seleccione un tipo de documento."),
+  identification_number: z.string().min(5, "El número de identificación es muy corto."),
+  email: z.string().email("Por favor, ingrese un email válido."),
+  primary_phone: z.string().min(7, "El número de teléfono es muy corto."),
+})
+
+const createCompanySchema = z.object({
+  legal_name: z.string().min(3, "El nombre legal debe tener al menos 3 caracteres."),
+  trade_name: z.string().optional(),
+  company_type: z.enum(["PdE", "Transportista"], { required_error: "Debe seleccionar un tipo de empresa." }),
+  legal_id: z.string().min(5, "El ID legal (CUIT/RUC) es muy corto."),
+  fiscal_address: z.string().optional(),
+  contact_email: z.string().email("Email de contacto inválido.").optional().or(z.literal("")),
+  contact_phone: z.string().optional(),
+  logo_url: z.string().url("Debe ser una URL válida.").optional().or(z.literal("")),
+  legalRepresentative: legalRepresentativeSchema,
+})
+
+type CreateCompanyFormValues = z.infer<typeof createCompanySchema>
 
 interface DocumentType {
   id: string
   name: string
 }
 
-export function CreateCompanyForm() {
+export function CreateCompanyForm({ onSuccess }: { onSuccess: () => void }) {
+  const { showAlert } = useAlert()
   const [documentTypes, setDocumentTypes] = useState<DocumentType[]>([])
-  const [isSubmitting, setIsSubmitting] = useState(false)
-
-  const form = useForm<CompanyFormData>({
-    resolver: zodResolver(companySchema),
+  const form = useForm<CreateCompanyFormValues>({
+    resolver: zodResolver(createCompanySchema),
     defaultValues: {
       legal_name: "",
       trade_name: "",
-      company_type: undefined,
       legal_id: "",
       fiscal_address: "",
       contact_email: "",
       contact_phone: "",
       logo_url: "",
-      legalRepresentatives: [
-        { full_name: "", document_type_id: "", identification_number: "", email: "", primary_phone: "" },
-      ],
+      legalRepresentative: {
+        full_name: "",
+        document_type_id: "",
+        identification_number: "",
+        email: "",
+        primary_phone: "",
+      },
     },
   })
 
-  const { fields, append, remove } = useFieldArray({
-    control: form.control,
-    name: "legalRepresentatives",
-  })
-
   useEffect(() => {
-    async function loadDocumentTypes() {
-      const types = await fetchDocumentTypesAction()
-      setDocumentTypes(types)
-    }
-    loadDocumentTypes()
-  }, [])
-
-  const onSubmit = async (data: CompanyFormData) => {
-    setIsSubmitting(true)
-    toast.loading("Creando empresa...")
-    const result = await createCompany(data)
-    toast.dismiss()
-    if (result.success) {
-      toast.success(result.message)
-      form.reset()
-    } else {
-      toast.error(result.message || "Ocurrió un error.")
-      if (result.errors) {
-        // Handle specific field errors if needed, e.g. by setting form errors
-        console.error("Validation errors:", result.errors)
+    const fetchDocumentTypes = async () => {
+      try {
+        const res = await fetch("/api/document-types")
+        const data = await res.json()
+        setDocumentTypes(data)
+      } catch (error) {
+        console.error("Failed to fetch document types", error)
       }
     }
-    setIsSubmitting(false)
+    fetchDocumentTypes()
+  }, [])
+
+  const onSubmit = async (data: CreateCompanyFormValues) => {
+    try {
+      await createCompany(data)
+      showAlert("Éxito", "Empresa creada correctamente.", "success")
+      onSuccess()
+      form.reset()
+    } catch (error: any) {
+      showAlert("Error", error.message || "No se pudo crear la empresa.", "error")
+    }
   }
 
   return (
-    <Card className="w-full max-w-3xl mx-auto">
-      <CardHeader>
-        <CardTitle>Crear Nueva Empresa</CardTitle>
-        <CardDescription>Complete los datos para registrar una nueva empresa.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">Datos de la Empresa</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="legal_name">Razón Social</Label>
-              <Input id="legal_name" {...form.register("legal_name")} />
-              {form.formState.errors.legal_name && (
-                <p className="text-red-500 text-sm">{form.formState.errors.legal_name.message}</p>
+            <FormField
+              control={form.control}
+              name="legal_name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nombre Legal</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Mi Empresa S.A." {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
-            </div>
-            <div>
-              <Label htmlFor="trade_name">Nombre Comercial (Opcional)</Label>
-              <Input id="trade_name" {...form.register("trade_name")} />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="company_type">Tipo de Empresa</Label>
-              <Controller
-                control={form.control}
-                name="company_type"
-                render={({ field }) => (
+            />
+            <FormField
+              control={form.control}
+              name="trade_name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nombre Comercial</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Mi Empresa" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="legal_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>ID Legal (CUIT/RUC)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="20-12345678-9" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="company_type"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Tipo de Empresa</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Seleccione un tipo" />
-                    </SelectTrigger>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccione un tipo" />
+                      </SelectTrigger>
+                    </FormControl>
                     <SelectContent>
                       <SelectItem value="PdE">Punto de Entrega (PdE)</SelectItem>
                       <SelectItem value="Transportista">Transportista</SelectItem>
                     </SelectContent>
                   </Select>
-                )}
-              />
-              {form.formState.errors.company_type && (
-                <p className="text-red-500 text-sm">{form.formState.errors.company_type.message}</p>
+                  <FormMessage />
+                </FormItem>
               )}
-            </div>
-            <div>
-              <Label htmlFor="legal_id">ID Legal (CUIT/RUC)</Label>
-              <Input id="legal_id" {...form.register("legal_id")} />
-              {form.formState.errors.legal_id && (
-                <p className="text-red-500 text-sm">{form.formState.errors.legal_id.message}</p>
+            />
+            <FormField
+              control={form.control}
+              name="contact_email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email de Contacto</FormLabel>
+                  <FormControl>
+                    <Input type="email" placeholder="contacto@miempresa.com" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
-            </div>
-          </div>
-
-          <div>
-            <Label htmlFor="fiscal_address">Dirección Fiscal (Opcional)</Label>
-            <Input id="fiscal_address" {...form.register("fiscal_address")} />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="contact_email">Email de Contacto (Opcional)</Label>
-              <Input type="email" id="contact_email" {...form.register("contact_email")} />
-              {form.formState.errors.contact_email && (
-                <p className="text-red-500 text-sm">{form.formState.errors.contact_email.message}</p>
+            />
+            <FormField
+              control={form.control}
+              name="contact_phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Teléfono de Contacto</FormLabel>
+                  <FormControl>
+                    <Input placeholder="+54 9 11 1234-5678" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
-            </div>
-            <div>
-              <Label htmlFor="contact_phone">Teléfono de Contacto (Opcional)</Label>
-              <Input id="contact_phone" {...form.register("contact_phone")} />
-            </div>
+            />
           </div>
-          <div>
-            <Label htmlFor="logo_url">URL del Logo (Opcional)</Label>
-            <Input id="logo_url" {...form.register("logo_url")} />
-            {form.formState.errors.logo_url && (
-              <p className="text-red-500 text-sm">{form.formState.errors.logo_url.message}</p>
+          <FormField
+            control={form.control}
+            name="fiscal_address"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Dirección Fiscal</FormLabel>
+                <FormControl>
+                  <Input placeholder="Av. Siempre Viva 742" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
-          </div>
+          />
+          <FormField
+            control={form.control}
+            name="logo_url"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>URL del Logo</FormLabel>
+                <FormControl>
+                  <Input placeholder="https://ejemplo.com/logo.png" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
-          <div className="space-y-4">
-            <h3 className="text-lg font-medium">Representantes Legales</h3>
-            {fields.map((item, index) => (
-              <Card key={item.id} className="p-4 space-y-3">
-                <div className="flex justify-between items-center">
-                  <h4 className="font-semibold">Representante Legal {index + 1}</h4>
-                  {fields.length > 1 && (
-                    <Button type="button" variant="ghost" size="sm" onClick={() => remove(index)}>
-                      <Trash2 className="h-4 w-4 text-red-500" />
-                    </Button>
-                  )}
-                </div>
-                <div>
-                  <Label htmlFor={`legalRepresentatives.${index}.full_name`}>Nombre Completo</Label>
-                  <Input {...form.register(`legalRepresentatives.${index}.full_name`)} />
-                  {form.formState.errors.legalRepresentatives?.[index]?.full_name && (
-                    <p className="text-red-500 text-sm">
-                      {form.formState.errors.legalRepresentatives?.[index]?.full_name?.message}
-                    </p>
-                  )}
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor={`legalRepresentatives.${index}.document_type_id`}>Tipo de Documento</Label>
-                    <Controller
-                      control={form.control}
-                      name={`legalRepresentatives.${index}.document_type_id`}
-                      render={({ field }) => (
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Seleccione tipo" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {documentTypes.map((docType) => (
-                              <SelectItem key={docType.id} value={docType.id}>
-                                {docType.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    />
-                    {form.formState.errors.legalRepresentatives?.[index]?.document_type_id && (
-                      <p className="text-red-500 text-sm">
-                        {form.formState.errors.legalRepresentatives?.[index]?.document_type_id?.message}
-                      </p>
-                    )}
-                  </div>
-                  <div>
-                    <Label htmlFor={`legalRepresentatives.${index}.identification_number`}>
-                      Número de Identificación
-                    </Label>
-                    <Input {...form.register(`legalRepresentatives.${index}.identification_number`)} />
-                    {form.formState.errors.legalRepresentatives?.[index]?.identification_number && (
-                      <p className="text-red-500 text-sm">
-                        {form.formState.errors.legalRepresentatives?.[index]?.identification_number?.message}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                <div>
-                  <Label htmlFor={`legalRepresentatives.${index}.email`}>Email (Opcional)</Label>
-                  <Input type="email" {...form.register(`legalRepresentatives.${index}.email`)} />
-                  {form.formState.errors.legalRepresentatives?.[index]?.email && (
-                    <p className="text-red-500 text-sm">
-                      {form.formState.errors.legalRepresentatives?.[index]?.email?.message}
-                    </p>
-                  )}
-                </div>
-                <div>
-                  <Label htmlFor={`legalRepresentatives.${index}.primary_phone`}>Teléfono Principal (Opcional)</Label>
-                  <Input {...form.register(`legalRepresentatives.${index}.primary_phone`)} />
-                </div>
-              </Card>
-            ))}
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() =>
-                append({ full_name: "", document_type_id: "", identification_number: "", email: "", primary_phone: "" })
-              }
-              className="mt-2"
-            >
-              <PlusCircle className="mr-2 h-4 w-4" /> Agregar Representante Legal
-            </Button>
-            {form.formState.errors.legalRepresentatives &&
-              typeof form.formState.errors.legalRepresentatives === "object" &&
-              !Array.isArray(form.formState.errors.legalRepresentatives) && (
-                <p className="text-red-500 text-sm">{form.formState.errors.legalRepresentatives.message}</p>
+        <div className="space-y-4 pt-4 border-t">
+          <h3 className="text-lg font-medium">Representante Legal</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="legalRepresentative.full_name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nombre Completo</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Juan Pérez" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
+            />
+            <FormField
+              control={form.control}
+              name="legalRepresentative.document_type_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Tipo de Documento</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccione..." />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {documentTypes.map((type) => (
+                        <SelectItem key={type.id} value={type.id}>
+                          {type.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="legalRepresentative.identification_number"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nro. de Identificación</FormLabel>
+                  <FormControl>
+                    <Input placeholder="12.345.678" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="legalRepresentative.email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                    <Input type="email" placeholder="juan.perez@email.com" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="legalRepresentative.primary_phone"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Teléfono Principal</FormLabel>
+                  <FormControl>
+                    <Input placeholder="+54 9 11 8765-4321" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </div>
+        </div>
 
-          <Button type="submit" disabled={isSubmitting} className="w-full md:w-auto">
-            {isSubmitting ? "Creando..." : "Crear Empresa"}
-          </Button>
-        </form>
-      </CardContent>
-    </Card>
+        <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+          {form.formState.isSubmitting ? "Creando..." : "Crear Empresa"}
+        </Button>
+      </form>
+    </Form>
   )
 }
