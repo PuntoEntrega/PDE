@@ -62,3 +62,18 @@ export async function getSession(): Promise<SessionPayload | null> {
     return null
   }
 }
+
+
+
+///////////////////////////////
+export function getUserFromToken(req: Request) {
+  const token = cookies().get("token")?.value
+  if (!token) return null
+
+  try {
+    const payload = jwt.verify(token, process.env.JWT_SECRET!)
+    return payload as { sub: string }
+  } catch {
+    return null
+  }
+}

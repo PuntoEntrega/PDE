@@ -58,7 +58,7 @@ export async function middleware(req: NextRequest) {
   const token = req.cookies.get("token")?.value;
   if (!token) {
     console.log(token);
-    
+
     console.debug("[MW] Sin token → /login");
     return NextResponse.redirect(new URL("/login", req.url));
   }
@@ -77,7 +77,7 @@ export async function middleware(req: NextRequest) {
       console.debug("[MW] Nivel insuficiente → /unauthorized");
       return NextResponse.redirect(new URL("/unauthorized", req.url));
     }
- 
+
     // OK
     return NextResponse.next();
   } catch (err) {
