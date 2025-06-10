@@ -5,67 +5,61 @@ import { NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { sendEmailWithMandrill } from "@/lib/messaging/email"
 import { notificarAdminsUnderReview } from "@/lib/helpers/notifyAdmins"
+import { getAccountStatusEmail } from "@/lib/templates/emailTemplate"
 
 export async function PATCH(
   req: NextRequest,
   { params: { id } }: { params: { id: string } }
 ) {
-  const userId = id;     
+  const userId = id
   const { newStatus, reason, changed_by_id } = await req.json()
 
   const estadosPermitidos = ["active", "inactive", "rejected", "under_review"]
-  if (!estadosPermitidos.includes(newStatus)) {
+  if (!estadosPermitidos.includes(newStatus))
     return NextResponse.json({ error: "Estado inválido" }, { status: 400 })
-  }
 
   try {
-    // 1. Leer usuario previo
-    const prevUser = await prisma.users.findUnique({
-      where: { id: userId },
-    })
-    if (!prevUser) {
+    const prevUser = await prisma.users.findUnique({ where: { id: userId } })
+    if (!prevUser)
       return NextResponse.json({ error: "Usuario no encontrado" }, { status: 404 })
+
+    // Actualizar y guardar historial
+    await prisma.$transaction([
+      prisma.users.update({ where: { id: userId }, data: { status: newStatus } }),
+      prisma.userStatusHistory.create({
+        data: {
+          user_id: userId,
+          changed_by_id,
+          previous_status: prevUser.status!,
+          new_status: newStatus,
+          reason,
+        },
+      }),
+    ])
+
+    // Mapeamos de código a texto en español
+    const estadoTraducido: Record<string, string> = {
+      active: "activa",
+      under_review: "bajo revisión",
+      inactive: "inactiva",
+      rejected: "rechazada",
     }
 
-    // 2. Actualizar status
-    await prisma.users.update({
-      where: { id: userId },
-      data: { status: newStatus },
-    })
-
-    // 3. Registrar en historial
-    await prisma.userStatusHistory.create({
-      data: {
-        user_id: userId,
-        changed_by_id,
-        previous_status: prevUser.status!,
-        new_status: newStatus,
-        reason,
-      },
-    })
-
-    // 4. Notificar al usuario afectado
+    // Correo al usuario
     if (prevUser.email) {
-      const subject = "Actualización sobre tu cuenta en Punto Entrega"
-      const msg = `
-Hola ${prevUser.first_name} ${prevUser.last_name},
-
-Tu cuenta ha sido actualizada al estado: *${newStatus.toUpperCase()}*.
-
-${reason ? `Motivo: ${reason}` : ""}
-
-Gracias por utilizar Punto Entrega.
-      `.trim()
-
-      try {
-        console.log("📧 Enviando correo al usuario:", prevUser.email)
-        await sendEmailWithMandrill(prevUser.email, subject, msg)
-      } catch (e) {
-        console.error("✉️ Error enviando correo al usuario:", prevUser.email, e)
-      }
+      const html = getAccountStatusEmail({
+        userFullName: `${prevUser.first_name} ${prevUser.last_name}`,
+        estadoCuenta: estadoTraducido[newStatus],
+        motivo: reason,
+      })
+      await sendEmailWithMandrill(
+        prevUser.email,
+        "Actualización de tu cuenta en Punto Entrega",
+        html
+      )
     }
 
-    // 5. Notificar a admins si entra en revisión
+    // Correo a admins si entra en revisión
     if (newStatus === "under_review") {
       await notificarAdminsUnderReview({
         first_name: prevUser.first_name!,
@@ -76,8 +70,8 @@ Gracias por utilizar Punto Entrega.
     }
 
     return NextResponse.json({ message: "Estado actualizado y correos enviados" })
-  } catch (err: any) {
-    console.error("❌ Error al cambiar estado del usuario:", err?.message ?? err)
+  } catch (err) {
+    console.error("❌ change-status error:", err)
     return NextResponse.json({ error: "Error interno" }, { status: 500 })
   }
 }

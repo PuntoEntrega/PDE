@@ -1,12 +1,13 @@
 import prisma from "@/lib/prisma"
 import { sendEmailWithMandrill } from "@/lib/messaging/email"
 import { Roles } from "@/lib/envRoles"
+import { getReviewRequestEmail } from "../templates/reviewRequestAdmin"
 
 interface UserBasicInfo {
-    first_name: string
-    last_name: string
-    email?: string
-    phone?: string
+  first_name: string
+  last_name: string
+  email?: string
+  phone?: string
 }
 
 export async function notificarAdminsUnderReview(user: UserBasicInfo) {
@@ -14,34 +15,33 @@ export async function notificarAdminsUnderReview(user: UserBasicInfo) {
     Roles.OWNER_APLICATIVO,
     Roles.SUPER_ADMIN_APLICATIVO,
     Roles.SOPORTE_APLICATIVO,
-  ].filter(Boolean);
+  ].filter(Boolean)
 
   const admins = await prisma.users.findMany({
     where: {
       role_id: { in: rolesNotificar },
-      email:   { not: "" },
+      email: { not: "" },
     },
     select: { email: true },
-  });
+  })
 
-  if (!admins.length) return;
+  if (!admins.length) return
 
-  const subject = "Nueva solicitud de revisión en Punto Entrega";
-  const msg = `
-Hay un nuevo usuario en estado *UNDER_REVIEW*:
+  const html = getReviewRequestEmail({
+    fullName: `${user.first_name} ${user.last_name}`,
+    email: user.email,
+    phone: user.phone,
+  })
 
-👤 ${user.first_name} ${user.last_name}
-📧 ${user.email ?? "Sin email"}
-📞 ${user.phone ?? "Sin teléfono"}
-
-Revisa aquí: https://puntoentrega.app/admin-panel/review-users
-`.trim();
+  const subject = "Nueva solicitud de revisión en Punto Entrega"
 
   await Promise.all(
-    admins.map(({ email }) =>
-      sendEmailWithMandrill(email!, subject, msg).catch(e =>
-        console.error("✉️  Error enviando a", email, e)
-      )
-    )
-  );
+    admins.map(async ({ email }) => {
+      try {
+        await sendEmailWithMandrill(email!, subject, html)
+      } catch (err) {
+        console.error("✉️  Error enviando a", email, err)
+      }
+    })
+  )
 }
