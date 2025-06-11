@@ -63,6 +63,7 @@ export function Sidebar({ children }: { children: React.ReactNode }) {
       credentials: "include", // para asegurarte de enviar las cookies junto con la petición (aunque no sean necesarias aquí)
     });
     localStorage.removeItem("token");
+    localStorage.removeItem("relationedCompany");
     console.log('Cookie token removido');
     router.push("/login");
   };

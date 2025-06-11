@@ -7,7 +7,6 @@ import { serialize } from "cookie";
 import { prisma } from "../../../../lib/prisma";
 
 export async function POST(req: NextRequest) {
-  console.log("🔌 DATABASE_URL:", !!process.env.DATABASE_URL);
   try {
     const { username, password } = await req.json();
 
@@ -18,34 +17,20 @@ export async function POST(req: NextRequest) {
       },
       include: { Roles: true },
     });
+
     if (!user) {
-      return NextResponse.json(
-        { error: "Usuario no encontrado" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Usuario no encontrado" }, { status: 401 });
     }
 
     // 2. Compara contraseña
     const valid = await compare(password, user.password_hash);
-    console.log(
-      "typeof password:",
-      typeof password,
-      "typeof hash:",
-      typeof user.password_hash
-    );
-
     if (!valid) {
-      return NextResponse.json(
-        { error: "Credenciales inválidas" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Credenciales inválidas" }, { status: 401 });
     }
 
-    // 3. Genera el JWT con info mínima
+    // 3. Genera el JWT
     const JWT_SECRET = process.env.JWT_SECRET;
-    if (!JWT_SECRET) {
-      throw new Error("❌ JWT_SECRET no está definido en el entorno.");
-    }
+    if (!JWT_SECRET) throw new Error("❌ JWT_SECRET no está definido.");
 
     const token = jwt.sign(
       {
@@ -70,22 +55,37 @@ export async function POST(req: NextRequest) {
       { expiresIn: "8h" }
     );
 
-    // 4. Serializa cookie HTTP-only
-    const cookie = serialize("token", token, {
+    // 4. Determina el context ID
+    const isSuperAdmin = user.Roles?.name === "SuperAdminEmpresa"; // ajusta si tu rol tiene otro nombre
+    const relationedCompanyId = isSuperAdmin ? user.id : user.global_company_context_id;
+
+    // 5. Serializa cookies
+    const tokenCookie = serialize("token", token, {
       httpOnly: true,
       path: "/",
-      maxAge: 8 * 60 * 60, // 8 horas en segundos
+      maxAge: 8 * 60 * 60,
       sameSite: "lax",
       secure: process.env.NODE_ENV === "production",
     });
 
-    // 5. Devuelve el token en el body y añade la cabecera Set-Cookie
+    const contextCookie = serialize("relationedCompany", relationedCompanyId || "", {
+      httpOnly: true,
+      path: "/",
+      maxAge: 8 * 60 * 60,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+    });
+
+    // 6. Respuesta
     return NextResponse.json(
-      { token },
+      {
+        token,
+        relationedCompanyId,
+      },
       {
         status: 200,
         headers: {
-          "Set-Cookie": cookie,
+          "Set-Cookie": [tokenCookie, contextCookie].join(", "),
         },
       }
     );

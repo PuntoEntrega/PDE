@@ -8,31 +8,34 @@ datasource db {
 }
 
 model Companies {
-  id                   String                  @id @db.VarChar(36)
-  legal_name           String                  @db.VarChar(100)
-  trade_name           String?                 @db.VarChar(100)
-  company_type         Companies_company_type?
-  legal_id             String                  @db.VarChar(40)
-  fiscal_address       String?                 @db.VarChar(256)
-  contact_email        String?                 @db.VarChar(120)
-  contact_phone        String?                 @db.VarChar(30)
-  owner_user_id        String?                 @db.VarChar(36)
-  parent_company_id    String?                 @db.VarChar(36)
-  active               Boolean?                @default(true)
-  created_at           DateTime?               @default(now()) @db.DateTime(0)
-  updated_at           DateTime?               @default(now()) @db.DateTime(0)
-  logo_url             String?                 @db.VarChar(255)
-  Users                Users?                  @relation(fields: [owner_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Companies_ibfk_1")
-  Companies            Companies?              @relation("CompaniesToCompanies", fields: [parent_company_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Companies_ibfk_2")
-  other_Companies      Companies[]             @relation("CompaniesToCompanies")
-  CompanyBankAccounts  CompanyBankAccounts[]
-  CompanyBillingConfig CompanyBillingConfig[]
-  CompanyStatusHistory CompanyStatusHistory[]
-  DeliveryPoints       DeliveryPoints[]
-  LegalRepresentatives LegalRepresentatives[]
+  id                                               String                  @id @db.VarChar(36)
+  legal_name                                       String                  @db.VarChar(100)
+  trade_name                                       String?                 @db.VarChar(100)
+  company_type                                     Companies_company_type?
+  legal_id                                         String                  @db.VarChar(40)
+  fiscal_address                                   String?                 @db.VarChar(256)
+  contact_email                                    String?                 @db.VarChar(120)
+  contact_phone                                    String?                 @db.VarChar(30)
+  owner_user_id                                    String?                 @db.VarChar(36)
+  parent_company_id                                String?                 @db.VarChar(36)
+  active                                           Boolean?                @default(true)
+  created_at                                       DateTime?               @default(now()) @db.DateTime(0)
+  updated_at                                       DateTime?               @default(now()) @db.DateTime(0)
+  logo_url                                         String?                 @db.VarChar(255)
+  global_company_context_id                        String?                 @db.VarChar(36)
+  Users                                            Users?                  @relation(fields: [owner_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Companies_ibfk_1")
+  Companies                                        Companies?              @relation("CompaniesToCompanies", fields: [parent_company_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Companies_ibfk_2")
+  other_Companies                                  Companies[]             @relation("CompaniesToCompanies")
+  Users_Companies_global_company_context_idToUsers Users?                  @relation("Companies_global_company_context_idToUsers", fields: [global_company_context_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Companies_ibfk_global_ctx")
+  CompanyBankAccounts                              CompanyBankAccounts[]
+  CompanyBillingConfig                             CompanyBillingConfig[]
+  CompanyStatusHistory                             CompanyStatusHistory[]
+  DeliveryPoints                                   DeliveryPoints[]
+  LegalRepresentatives                             LegalRepresentatives[]
 
   @@index([owner_user_id], map: "owner_user_id")
   @@index([parent_company_id], map: "parent_company_id")
+  @@index([global_company_context_id], map: "Companies_ibfk_global_ctx")
 }
 
 model CompanyBankAccounts {
@@ -140,15 +143,18 @@ model DeliveryPoints {
   active                                            Boolean?                    @default(true)
   created_at                                        DateTime?                   @default(now()) @db.DateTime(0)
   updated_at                                        DateTime?                   @default(now()) @db.DateTime(0)
+  global_company_context_id                         String?                     @db.VarChar(36)
   DeliveryHistory                                   DeliveryHistory[]
   DeliveryPointBankAccounts                         DeliveryPointBankAccounts[]
   Companies                                         Companies?                  @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "DeliveryPoints_ibfk_1")
   DocumentTypes                                     DocumentTypes?              @relation(fields: [document_type_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "DeliveryPoints_ibfk_2")
+  Users                                             Users?                      @relation(fields: [global_company_context_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "DeliveryPoints_ibfk_global_ctx")
   Guides_Guides_collection_point_idToDeliveryPoints Guides[]                    @relation("Guides_collection_point_idToDeliveryPoints")
   Guides_Guides_delivery_point_idToDeliveryPoints   Guides[]                    @relation("Guides_delivery_point_idToDeliveryPoints")
 
   @@index([company_id], map: "company_id")
   @@index([document_type_id], map: "document_type_id")
+  @@index([global_company_context_id], map: "DeliveryPoints_ibfk_global_ctx")
 }
 
 model DocumentTypes {
@@ -298,18 +304,24 @@ model Users {
   created_at                                               DateTime?              @default(now()) @db.DateTime(0)
   updated_at                                               DateTime?              @default(now()) @db.DateTime(0)
   verified                                                 Boolean?               @default(false)
+  global_company_context_id                                String?                @db.VarChar(36)
   Companies                                                Companies[]
+  Companies_Companies_global_company_context_idToUsers     Companies[]            @relation("Companies_global_company_context_idToUsers")
   CompanyStatusHistory                                     CompanyStatusHistory[]
   DeliveryHistory                                          DeliveryHistory[]
+  DeliveryPoints                                           DeliveryPoints[]
   Guides                                                   Guides[]
   Incidents                                                Incidents[]
   UserStatusHistory_UserStatusHistory_user_idToUsers       UserStatusHistory[]    @relation("UserStatusHistory_user_idToUsers")
   UserStatusHistory_UserStatusHistory_changed_by_idToUsers UserStatusHistory[]    @relation("UserStatusHistory_changed_by_idToUsers")
   DocumentTypes                                            DocumentTypes?         @relation(fields: [document_type_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Users_ibfk_1")
   Roles                                                    Roles?                 @relation(fields: [role_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Users_ibfk_2")
+  Users                                                    Users?                 @relation("UsersToUsers", fields: [global_company_context_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Users_ibfk_global_ctx")
+  other_Users                                              Users[]                @relation("UsersToUsers")
 
   @@index([document_type_id], map: "document_type_id")
   @@index([role_id], map: "role_id")
+  @@index([global_company_context_id], map: "Users_ibfk_global_ctx")
 }
 
 model CompanyStatusHistory {
