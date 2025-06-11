@@ -9,13 +9,14 @@ import Link from "next/link"
 import Icono from '../../../public/Icono.svg'
 import Image from "next/image"
 import { cn } from "../../../lib/utils"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { jwtDecode } from "jwt-decode"
 import { useUser } from "@/context/UserContext"
 
 interface DecodedToken {
   sub: string
   role: string
+  status: string
   first_name: string
   last_name: string
   email: string
@@ -39,6 +40,7 @@ import {
   Bell,
   Search,
   Home,
+  Building,
 } from "lucide-react"
 import {
   DropdownMenu,
@@ -51,7 +53,41 @@ import {
 export function Sidebar({ children }: { children: React.ReactNode }) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const router = useRouter()
+  const pathname = usePathname();
   const { user } = useUser()
+
+
+  const navItems = [
+    // sección Principal
+    { label: "Inicio", icon: Home, path: "/dashboard", section: "main" },
+    { label: "Empresas", icon: Building, path: "/companies", section: "main" },
+    { label: "Historial", icon: Clock, path: "/history", section: "main" },
+    { label: "Clientes", icon: User, path: "/clients", section: "main" },
+    // sección Administración
+    { label: "Estadísticas", icon: BarChart2, path: "/stats", section: "admin" },
+    { label: "Puntos de Entrega", icon: Store, path: "/points", section: "admin" },
+    { label: "Configuración", icon: Settings, path: "/settings", section: "admin" },
+    { label: "Ayuda", icon: HelpCircle, path: "/help", section: "admin" },
+  ];
+
+  // Obtén el rol y el estado actual del user
+  const { role, status } = user ?? { role: "", status: "" };
+
+  // Lógica de filtro
+  const visibleItems = navItems.filter(item => {
+    // Caso especial: SuperAdminEmpresa en estado draf/under_review
+    if (
+      role === "SuperAdminEmpresa" &&
+      (status === "draft" || status === "under_review")
+    ) {
+      return item.label === "Inicio";
+    }
+    // Para cualquier otro usuario, mostrar todo
+    return true;
+  });
+
+  const mainItems = visibleItems.filter(i => i.section === "main");
+  const adminItems = visibleItems.filter(i => i.section === "admin");
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen)
@@ -68,7 +104,7 @@ export function Sidebar({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
+    <div className="flex  bg-gray-50 overflow-hidden">
       {/* Sidebar */}
       <aside
         className={cn(
@@ -107,10 +143,16 @@ export function Sidebar({ children }: { children: React.ReactNode }) {
               </div>
             )}
             <nav className="space-y-1">
-              <SidebarItem icon={Home} label="Inicio" isOpen={isSidebarOpen} isActive={true} />
-              <SidebarItem icon={Package} label="Paquetes" isOpen={isSidebarOpen} />
-              <SidebarItem icon={Clock} label="Historial" isOpen={isSidebarOpen} />
-              <SidebarItem icon={User} label="Clientes" isOpen={isSidebarOpen} />
+              {mainItems.map(item => (
+                <SidebarItem
+                  key={item.label}
+                  icon={item.icon}
+                  label={item.label}
+                  isOpen={isSidebarOpen}
+                  isActive={pathname === item.path}
+                  href={item.path}
+                />
+              ))}
             </nav>
           </div>
 
@@ -121,10 +163,16 @@ export function Sidebar({ children }: { children: React.ReactNode }) {
               </div>
             )}
             <nav className="space-y-1">
-              <SidebarItem icon={BarChart2} label="Estadísticas" isOpen={isSidebarOpen} />
-              <SidebarItem icon={Store} label="Puntos de Entrega" isOpen={isSidebarOpen} />
-              <SidebarItem icon={Settings} label="Configuración" isOpen={isSidebarOpen} />
-              <SidebarItem icon={HelpCircle} label="Ayuda" isOpen={isSidebarOpen} />
+              {adminItems.map(item => (
+                <SidebarItem
+                  key={item.label}
+                  icon={item.icon}
+                  label={item.label}
+                  isOpen={isSidebarOpen}
+                  isActive={pathname === item.path}
+                  href={item.path}
+                />
+              ))}
             </nav>
           </div>
         </div>
@@ -161,7 +209,7 @@ export function Sidebar({ children }: { children: React.ReactNode }) {
             <DropdownMenu>
               <DropdownMenuTrigger className="flex items-center space-x-3 focus:outline-none hover:bg-gray-50 rounded-lg px-3 py-2 transition-colors">
                 <span className="text-gray-700 font-medium">{user?.first_name}</span>
-                <div className={`w-10 h-10 rounded-full overflow-hidden flex items-center justify-center ${user?.avatar_url ? 'bg-white': 'bg-gradient-to-br from-blue-500 to-blue-700'} 'text-white'`}>
+                <div className={`w-10 h-10 rounded-full overflow-hidden flex items-center justify-center ${user?.avatar_url ? 'bg-white' : 'bg-gradient-to-br from-blue-500 to-blue-700'} 'text-white'`}>
                   {user?.avatar_url ? (
                     /* ✅  Mostrar la foto si existe */
                     <Image
@@ -216,12 +264,13 @@ interface SidebarItemProps {
   label: string
   isOpen: boolean
   isActive?: boolean
+  href?: string
 }
 
-function SidebarItem({ icon: Icon, label, isOpen, isActive = false }: SidebarItemProps) {
+function SidebarItem({ icon: Icon, label, isOpen, isActive, href }: SidebarItemProps) {
   return (
     <Link
-      href="#"
+      href={href || "#"}
       className={cn(
         "flex items-center py-3 px-3 rounded-xl transition-all duration-200 group",
         isActive ? "bg-blue-700/50 text-white" : "text-gray-300 hover:bg-blue-700/30 hover:text-white",

@@ -36,14 +36,32 @@ import {
 import { z } from "zod"
 import { UserIcon } from "lucide-react"
 import { useUser } from "@/context/UserContext"
-import { useAlert } from "@/Components/alerts/use-alert"
+import { useAlert } from "@/Components/Alerts/use-alert"
 import { useRouter } from "next/navigation"
 
 // ─────────────────────────────────────────────────────────────────────────────
 // (Los schemas de validación se mantienen igual que antes)
 // ─────────────────────────────────────────────────────────────────────────────
-const companySchema = z.object({ /* … mismo que antes … */ })
-const legalRepSchema = z.object({ /* … mismo que antes … */ })
+
+export const companySchema = z.object({
+  legal_name:     z.string().nonempty("Denominación Fiscal es obligatoria"),
+  trade_name:     z.string().nonempty("Nombre de Comercio es obligatorio"),
+  legal_id:       z.string().nonempty("NIF es obligatorio"),
+  company_type:   z.enum(["PdE", "Transportista"], "Tipo de empresa inválido"),
+  fiscal_address: z.string().nonempty("Domicilio Fiscal es obligatorio"),
+  contact_email:  z.string().email("Correo inválido"),
+  contact_phone:  z.string().nonempty("Teléfono de Contacto es obligatorio"),
+  avatar_url:     z.string().optional(),
+});
+
+export const legalRepSchema = z.object({
+  document_type_id:     z.string().nonempty("Tipo de Identificación es obligatorio"),
+  full_name:            z.string().nonempty("Nombre Completo es obligatorio"),
+  identification_number:z.string().nonempty("Número de Identificación es obligatorio"),
+  email:                z.string().email("Correo inválido"),
+  primary_phone:        z.string().nonempty("Teléfono Principal es obligatorio"),
+  secondary_phone:      z.string().optional(),
+});
 
 interface CompanyGeneralFormProps {
   initialCompanyData?: any
@@ -100,7 +118,7 @@ export function CompanyGeneralForm({
   const [isSavingLocal, setIsSavingLocal] = useState(false)
 
   // ← ¡NUEVO! Flag para saber si el usuario está en modo “edición” (PATCH)
-  const [isEditing, setIsEditing] = useState(false)
+const [isEditing, setIsEditing] = useState(() => !initialCompanyData)
 
   // ← El mismo estado que antes, para guardar el draftCompanyId retornado desde Redis
   const [draftCompanyId, setDraftCompanyId] = useState<string | null>(null)

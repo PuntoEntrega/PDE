@@ -22,7 +22,14 @@ export async function GET(
                 contact_email: true,
                 contact_phone: true,
                 company_type: true,
+                active : true,
+                parent_company_id: true,
                 logo_url: true,
+                created_at: true,
+                updated_at: true,
+                        Companies: {            // campo definido en tu modelo Prisma para parent_company
+          select: { legal_name: true }
+        },
             },
         });
 
@@ -41,6 +48,11 @@ export async function GET(
                 email: true,
                 primary_phone: true,
                 secondary_phone: true,
+                created_at: true,
+                updated_at: true,
+                DocumentTypes:{
+                    select: { name: true }
+                }
             },
         });
 
