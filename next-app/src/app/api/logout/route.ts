@@ -1,29 +1,34 @@
-// src/app/api/logout/route.ts   (Next.js App Router)
-// o si usas Pages Router: src/pages/api/logout.ts
-
-import { NextResponse } from "next/server";
-import { serialize } from "cookie";
+// src/app/api/logout/route.ts
+import { NextResponse } from "next/server"
+import { serialize } from "cookie"
 
 export async function GET() {
-  // Serializa una cookie “token” vacía con maxAge=0 para que el navegador la elimine
-  const expiredCookie = serialize("token", "", {
+  const expiredTokenCookie = serialize("token", "", {
     httpOnly: true,
     path: "/",
-    maxAge: 0,         // Expirar inmediatamente
+    maxAge: 0,
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
-  });
+  })
 
-  // Devuelves la respuesta JSON o un redirect, pero en el encabezado pones Set-Cookie
+  const expiredRelationedCompanyCookie = serialize("relationedCompany", "", {
+    httpOnly: true,
+    path: "/",
+    maxAge: 0,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+  })
+
   const response = NextResponse.json(
     { ok: true },
     {
       status: 200,
       headers: {
-        "Set-Cookie": expiredCookie,
+        // Se pueden enviar múltiples cookies concatenadas con coma
+        "Set-Cookie": [expiredTokenCookie, expiredRelationedCompanyCookie].join(", "),
       },
     }
-  );
+  )
 
-  return response;
+  return response
 }

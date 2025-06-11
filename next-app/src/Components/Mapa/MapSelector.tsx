@@ -25,7 +25,7 @@ type MapSelectorProps = {
 const MapSelector = forwardRef<MapSelectorRef, MapSelectorProps>(
   ({ onLocationSelect, initialLat = 9.934739, initialLng = -84.087502 }, ref) => {
     const [position, setPosition] = useState<[number, number]>([initialLat, initialLng])
-    const [map, setMap] = useState<L.Map | null>(null)
+    const [map, setMap] = useState<L.Map | null>(null)  
 
     // Exponemos el método locateUser() al padre
     useImperativeHandle(ref, () => ({

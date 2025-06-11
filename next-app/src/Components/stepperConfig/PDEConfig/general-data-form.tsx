@@ -1,26 +1,87 @@
 "use client"
+// src/Components/stepperConfig/PDEConfig/general-data-form.tsx
 
-import { useState, useRef, useEffect } from "react"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/Components/ui/card"
+import React, { useState, useEffect, useRef } from "react"
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/Components/ui/card"
 import { Input } from "@/Components/ui/input"
 import { Label } from "@/Components/ui/label"
-import { Clock, MapPin, Building, CreditCard, Truck, Info, Calendar, Check, X } from "lucide-react"
-import { Button } from "@/Components/ui/button"
 import { Textarea } from "@/Components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/Components/ui/select"
-import { Popover, PopoverContent, PopoverTrigger } from "@/Components/ui/popover"
-import { cn } from "../../../../lib/utils"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/Components/ui/select"
 import { Switch } from "@/Components/ui/switch"
-import MapSelector, { MapSelectorRef } from "@/Components/Mapa/MapSelector"
-import { LocateFixed } from "lucide-react"
+import { Button } from "@/Components/ui/button"
+import {
+  Clock,
+  Info,
+  MapPin,
+  LocateFixed,
+} from "lucide-react"
+import { cn } from "../../../../lib/utils"
+import { useUser } from "@/context/UserContext"
+import CompanyVisualSelector from "@/Components/CompanyVisualSelector"
+import MapSelector from "@/Components/Mapa/MapSelector.client"
+import type { MapSelectorRef } from "@/Components/Mapa/MapSelector"
 
-const PDEGeneralDataForm = () => {
-  // Estado para el horario
+export interface DeliveryPointGeneralData {
+  company_id: string
+  name: string
+  whatsapp_contact: string
+  business_email: string
+  province: string
+  canton: string
+  district: string
+  exact_address: string
+  postal_code: string
+  latitude?: number
+  longitude?: number
+  schedule_json: Record<
+    string,
+    { isOpen: boolean; openTime: string; closeTime: string }
+  >
+  services_json: {
+    cards: boolean
+    cash: boolean
+    sinpe: boolean
+    guidesPrinting: boolean
+    parking: boolean
+    accessibility: boolean
+  }
+}
 
-  const [geo, setGeo] = useState<[number, number] | null>(null);
+interface PdeGeneralDataFormProps {
+  onChange: (data: Partial<DeliveryPointGeneralData>) => void
+}
+
+export default function PdeGeneralDataForm({
+  onChange,
+}: PdeGeneralDataFormProps) {
+  // Datos básicos
+  const [name, setName] = useState("")
+  const [telefono, setTelefono] = useState("")
+  const [email, setEmail] = useState("")
+  const [companyId, setCompanyId] = useState<string | null>(null)
+
+  // Ubicación
+  const [province, setProvince] = useState("")
+  const [canton, setCanton] = useState("")
+  const [district, setDistrict] = useState("")
+  const [exactAddress, setExactAddress] = useState("")
+  const [postalCode, setPostalCode] = useState("")
+  const [geo, setGeo] = useState<[number, number] | null>(null)
   const mapRef = useRef<MapSelectorRef>(null)
 
-
+  // Horario
   const [schedule, setSchedule] = useState({
     monday: { isOpen: true, openTime: "08:00", closeTime: "18:00" },
     tuesday: { isOpen: true, openTime: "08:00", closeTime: "18:00" },
@@ -31,82 +92,114 @@ const PDEGeneralDataForm = () => {
     sunday: { isOpen: false, openTime: "09:00", closeTime: "13:00" },
   })
 
-  // Estado para los métodos de pago
+  // Métodos de pago / servicios
   const [paymentMethods, setPaymentMethods] = useState({
     cards: false,
     cash: false,
     sinpe: false,
   })
-
-  // Estado para servicios adicionales
   const [additionalServices, setAdditionalServices] = useState({
     guidesPrinting: false,
     parking: false,
     accessibility: false,
   })
 
-  // Función para alternar días
+  // Efecto para notificar cambios al padre
+  useEffect(() => {
+    // sólo llamamos si onChange fue pasado
+    if (onChange) {
+      onChange({
+        company_id: companyId,
+        name,
+        whatsapp_contact: telefono,
+        business_email: email,
+        province,
+        canton,
+        district,
+        exact_address: exactAddress,
+        postal_code: postalCode,
+        latitude: geo?.[0],
+        longitude: geo?.[1],
+        schedule_json: schedule,
+        services_json: { ...paymentMethods, ...additionalServices },
+      })
+    }
+  }, [
+    companyId,
+    name,
+    telefono,
+    email,
+    province,
+    canton,
+    district,
+    exactAddress,
+    postalCode,
+    geo,
+    schedule,
+    paymentMethods,
+    additionalServices,
+    onChange,  // recuerda incluir onChange en deps
+  ])
+
+  // Helpers para horario
   const toggleDay = (day: string) => {
     setSchedule((prev) => ({
       ...prev,
-      [day]: {
-        ...prev[day],
-        isOpen: !prev[day].isOpen,
-      },
+      [day]: { ...prev[day], isOpen: !prev[day].isOpen },
     }))
   }
-
-  // Función para actualizar horarios
-  const updateSchedule = (day: string, field: string, value: string) => {
+  const updateSchedule = (
+    day: string,
+    field: "openTime" | "closeTime",
+    value: string
+  ) => {
     setSchedule((prev) => ({
       ...prev,
-      [day]: {
-        ...prev[day],
-        [field]: value,
-      },
+      [day]: { ...prev[day], [field]: value },
     }))
   }
-
-  // Función para configuraciones rápidas
   const setQuickSchedule = (type: "weekdays" | "all" | "none") => {
-    const days = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
-
+    const days = [
+      "monday",
+      "tuesday",
+      "wednesday",
+      "thursday",
+      "friday",
+      "saturday",
+      "sunday",
+    ] as const
     if (type === "weekdays") {
-      const newSchedule = { ...schedule }
-      days.forEach((day, index) => {
-        newSchedule[day] = {
-          ...newSchedule[day],
-          isOpen: index < 5, // Solo lunes a viernes
-          openTime: index < 5 ? "08:00" : "09:00",
-          closeTime: index < 5 ? "18:00" : "13:00",
-        }
-      })
-      setSchedule(newSchedule)
+      setSchedule((prev) =>
+        Object.fromEntries(
+          days.map((day, i) => [
+            day,
+            {
+              ...prev[day],
+              isOpen: i < 5,
+              openTime: i < 5 ? "08:00" : prev[day].openTime,
+              closeTime: i < 5 ? "18:00" : prev[day].closeTime,
+            },
+          ])
+        ) as typeof schedule
+      )
     } else if (type === "all") {
-      const newSchedule = { ...schedule }
-      days.forEach((day) => {
-        newSchedule[day] = { ...newSchedule[day], isOpen: true }
-      })
-      setSchedule(newSchedule)
-    } else if (type === "none") {
-      const newSchedule = { ...schedule }
-      days.forEach((day) => {
-        newSchedule[day] = { ...newSchedule[day], isOpen: false }
-      })
-      setSchedule(newSchedule)
+      setSchedule((prev) =>
+        Object.fromEntries(days.map((day) => [day, { ...prev[day], isOpen: true }]))
+      )
+    } else {
+      setSchedule((prev) =>
+        Object.fromEntries(days.map((day) => [day, { ...prev[day], isOpen: false }]))
+      )
     }
   }
 
-  // Función para alternar métodos de pago
-  const togglePaymentMethod = (method: string) => {
-    setPaymentMethods((prev) => ({
-      ...prev,
-      [method]: !prev[method],
-    }))
+  // Toggle métodos / servicios
+  const togglePaymentMethod = (method: keyof typeof paymentMethods) => {
+    setPaymentMethods((prev) => ({ ...prev, [method]: !prev[method] }))
   }
-
-  // Función para alternar servicios adicionales
-  const toggleAdditionalService = (service: string) => {
+  const toggleAdditionalService = (
+    service: keyof typeof additionalServices
+  ) => {
     setAdditionalServices((prev) => ({
       ...prev,
       [service]: !prev[service],
@@ -116,57 +209,72 @@ const PDEGeneralDataForm = () => {
   return (
     <div className="space-y-6">
       {/* Información General */}
-      <Card className="border border-gray-200 shadow-sm overflow-hidden">
+      <Card className="border-gray-200 shadow-sm">
         <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100 pb-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-blue-100 rounded-lg">
               <Info className="h-5 w-5 text-blue-600" />
             </div>
             <div>
-              <CardTitle className="text-lg font-semibold text-gray-800">Información General</CardTitle>
-              <CardDescription>Datos básicos del Punto de Despacho Eléctrico.</CardDescription>
+              <CardTitle className="text-lg font-semibold text-gray-800">
+                Información General
+              </CardTitle>
+              <CardDescription>Datos básicos del PDE.</CardDescription>
             </div>
           </div>
         </CardHeader>
         <CardContent className="p-6 space-y-6">
-          <div className="grid grid-cols-1">
-            <div className="space-y-2">
-              <Label htmlFor="name" className="font-medium">
-                Nombre Punto de Entrega
-              </Label>
-              <Input id="name" placeholder="Los pollos" className="border-gray-300" />
-            </div>
-          </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="Teléfono" className="font-medium">
-                Teléfono
-              </Label>
-              <Input id="Teléfono" placeholder="Teléfono o WhatsApp" className="border-gray-300" />
+              <Label htmlFor="name">Nombre del PDE</Label>
+              <Input
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Los pollos"
+              />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email" className="font-medium">
-                Correo electrónico local comercial
-              </Label>
-              <Input id="email" type="email" placeholder="empresa@ejemplo.com" className="border-gray-300" />
+              <Label htmlFor="telefono">Teléfono / WhatsApp</Label>
+              <Input
+                id="telefono"
+                value={telefono}
+                onChange={(e) => setTelefono(e.target.value)}
+                placeholder="8888-8888"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Correo comercial</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="empresa@ejemplo.com"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Empresa asociada</Label>
+              <CompanyVisualSelector
+                value={companyId}
+                onChange={(id) => setCompanyId(id)}
+              />
             </div>
           </div>
-
-
         </CardContent>
       </Card>
 
-
-      {/* Dirección del Punto de Entrega */}
-      <Card className="border border-gray-200 shadow-sm overflow-hidden">
+      {/* Dirección */}
+      <Card className="border-gray-200 shadow-sm">
         <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100 pb-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-blue-100 rounded-lg">
               <MapPin className="h-5 w-5 text-blue-600" />
             </div>
             <div>
-              <CardTitle className="text-lg font-semibold text-gray-800">Dirección del Punto de Entrega</CardTitle>
+              <CardTitle className="text-lg font-semibold text-gray-800">
+                Dirección y geolocalización
+              </CardTitle>
               <CardDescription>Ubicación exacta del PDE.</CardDescription>
             </div>
           </div>
@@ -174,12 +282,13 @@ const PDEGeneralDataForm = () => {
         <CardContent className="p-6 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="province" className="font-medium">
-                Provincia
-              </Label>
-              <Select>
-                <SelectTrigger className="border-gray-300">
-                  <SelectValue placeholder="Seleccione una opción" />
+              <Label htmlFor="province">Provincia</Label>
+              <Select
+                value={province}
+                onValueChange={setProvince}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccione una" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="san_jose">San José</SelectItem>
@@ -193,12 +302,13 @@ const PDEGeneralDataForm = () => {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="canton" className="font-medium">
-                Cantón
-              </Label>
-              <Select>
-                <SelectTrigger className="border-gray-300">
-                  <SelectValue placeholder="Seleccione una opción" />
+              <Label htmlFor="canton">Cantón</Label>
+              <Select
+                value={canton}
+                onValueChange={setCanton}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccione una" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="central">Central</SelectItem>
@@ -209,12 +319,13 @@ const PDEGeneralDataForm = () => {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="district" className="font-medium">
-                Distrito
-              </Label>
-              <Select>
-                <SelectTrigger className="border-gray-300">
-                  <SelectValue placeholder="Seleccione una opción" />
+              <Label htmlFor="district">Distrito</Label>
+              <Select
+                value={district}
+                onValueChange={setDistrict}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccione una" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="carmen">Carmen</SelectItem>
@@ -227,382 +338,226 @@ const PDEGeneralDataForm = () => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="exactAddress" className="font-medium">
-              Dirección exacta
-            </Label>
+            <Label htmlFor="exactAddress">Dirección exacta</Label>
             <Textarea
               id="exactAddress"
-              placeholder="Diagonal a la iglesia comunal de Coronado, local esquinero"
-              className="border-gray-300 min-h-[80px]"
+              value={exactAddress}
+              onChange={(e) => setExactAddress(e.target.value)}
+              placeholder="Diagonal a la iglesia…"
             />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label htmlFor="postalCode" className="font-medium">
-                Código Postal
-              </Label>
-              <Input id="postalCode" placeholder="Ej: 20202" className="border-gray-300" />
+              <Label htmlFor="postalCode">Código Postal</Label>
+              <Input
+                id="postalCode"
+                value={postalCode}
+                onChange={(e) => setPostalCode(e.target.value)}
+                placeholder="20202"
+              />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="geolocation" className="font-medium">
-                Geolocalización
-              </Label>
+              <Label htmlFor="geolocation">Geolocalización</Label>
               <Input
                 id="geolocation"
                 readOnly
-                value={geo ? `${geo[0].toFixed(6)}, ${geo[1].toFixed(6)}` : ""}
-                className="border-gray-300"
+                value={
+                  geo ? `${geo[0].toFixed(6)}, ${geo[1].toFixed(6)}` : ""
+                }
               />
-
             </div>
           </div>
 
-          {/* Mapa (placeholder para Google Maps) */}
-          <div className="h-[300px] border border-gray-300 rounded-lg overflow-hidden relative">
-            {/* Botón flotante 📍 */}
+          <div className="h-[300px] relative border-gray-300 rounded-lg overflow-hidden">
             <button
               type="button"
               onClick={() => mapRef.current?.locateUser()}
-              className="absolute z-[1000] top-2 right-2 bg-white shadow px-2 py-1 rounded-full text-sm border hover:bg-blue-50 text-blue-600 flex items-center gap-1"
+              className="absolute top-2 right-2 bg-white shadow px-2 py-1 rounded-full text-sm flex items-center gap-1"
             >
-              <LocateFixed className="w-4 h-4" />
-              Ubicarme 📍
+              <LocateFixed className="w-4 h-4 text-blue-600" />
+              Ubicarme
             </button>
-
-            {/* Mapa */}
             <MapSelector
               ref={mapRef}
-              onLocationSelect={(lat, lng) => {
-                setGeo([lat, lng])
-              }}
+              onLocationSelect={(lat, lng) => setGeo([lat, lng])}
             />
           </div>
-
-
         </CardContent>
       </Card>
 
-      {/* Horario Comercial - Componente mejorado */}
-      <Card className="border border-gray-200 shadow-sm overflow-hidden">
+      {/* Horario */}
+      <Card className="border-gray-200 shadow-sm">
         <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100 pb-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-blue-100 rounded-lg">
               <Clock className="h-5 w-5 text-blue-600" />
             </div>
             <div>
-              <CardTitle className="text-lg font-semibold text-gray-800">Horario Comercial</CardTitle>
-              <CardDescription>Configura los días y horarios de atención</CardDescription>
+              <CardTitle className="text-lg font-semibold text-gray-800">
+                Horario Comercial
+              </CardTitle>
+              <CardDescription>
+                Configura días y horarios de atención.
+              </CardDescription>
             </div>
           </div>
         </CardHeader>
         <CardContent className="p-6 space-y-4">
           <div className="flex flex-wrap gap-3 mb-4">
             <Button
-              type="button"
               variant="outline"
               size="sm"
               onClick={() => setQuickSchedule("weekdays")}
-              className="text-xs border-blue-200 hover:bg-blue-50 hover:border-blue-300 text-blue-700"
             >
-              <Calendar className="h-3.5 w-3.5 mr-1" />
-              Solo días laborales
+              Solo laborales
             </Button>
             <Button
-              type="button"
               variant="outline"
               size="sm"
               onClick={() => setQuickSchedule("all")}
-              className="text-xs border-blue-200 hover:bg-blue-50 hover:border-blue-300 text-blue-700"
             >
-              <Check className="h-3.5 w-3.5 mr-1" />
-              Todos los días
+              Todos
             </Button>
             <Button
-              type="button"
               variant="outline"
               size="sm"
               onClick={() => setQuickSchedule("none")}
-              className="text-xs border-red-200 hover:bg-red-50 hover:border-red-300 text-red-600"
             >
-              <X className="h-3.5 w-3.5 mr-1" />
-              Limpiar todo
+              Ninguno
             </Button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {[
-              { day: "Lunes", key: "monday" },
-              { day: "Martes", key: "tuesday" },
-              { day: "Miércoles", key: "wednesday" },
-              { day: "Jueves", key: "thursday" },
-              { day: "Viernes", key: "friday" },
-              { day: "Sábado", key: "saturday" },
-              { day: "Domingo", key: "sunday" },
-            ].map(({ day, key }, index) => (
-              <div
-                key={key}
-                className={cn(
-                  "group relative rounded-xl border transition-all duration-200 hover:shadow-sm",
-                  schedule[key].isOpen
-                    ? "border-blue-200 bg-gradient-to-r from-blue-50 to-white"
-                    : "border-gray-200 bg-gray-50",
-                  index === 6 && "md:col-span-2",
-                )}
-              >
-                <div className="absolute top-3 right-3">
-                  <Switch
-                    checked={schedule[key].isOpen}
-                    onCheckedChange={() => toggleDay(key)}
-                    className="data-[state=checked]:bg-blue-500"
-                  />
-                </div>
-
-                <div className="p-4 pr-16">
-                  <h3 className={cn("font-medium", schedule[key].isOpen ? "text-blue-900" : "text-gray-500")}>{day}</h3>
-
-                  {schedule[key].isOpen ? (
-                    <div className="mt-3 flex flex-wrap items-center gap-3">
-                      <div className="flex items-center gap-2">
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className={cn(
-                                "w-[110px] justify-start text-left font-normal border-blue-200",
-                                !schedule[key].openTime && "text-muted-foreground",
-                              )}
-                            >
-                              <Clock className="mr-2 h-3.5 w-3.5 text-blue-500" />
-                              {schedule[key].openTime || "Apertura"}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <div className="p-3 space-y-3">
-                              <div className="space-y-1">
-                                <h4 className="text-sm font-medium">Hora de apertura</h4>
-                                <p className="text-xs text-gray-500">Selecciona la hora de apertura para {day}</p>
-                              </div>
-                              <div className="grid grid-cols-4 gap-2">
-                                {["07:00", "08:00", "09:00", "10:00"].map((time) => (
-                                  <Button
-                                    key={time}
-                                    variant="outline"
-                                    size="sm"
-                                    className={cn(
-                                      "text-xs",
-                                      schedule[key].openTime === time && "bg-blue-100 border-blue-300 text-blue-700",
-                                    )}
-                                    onClick={() => updateSchedule(key, "openTime", time)}
-                                  >
-                                    {time}
-                                  </Button>
-                                ))}
-                              </div>
-                              <Input
-                                type="time"
-                                value={schedule[key].openTime}
-                                onChange={(e) => updateSchedule(key, "openTime", e.target.value)}
-                                className="w-full text-sm border-blue-200 focus:border-blue-400"
-                              />
-                            </div>
-                          </PopoverContent>
-                        </Popover>
-
-                        <span className="text-gray-500">a</span>
-
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className={cn(
-                                "w-[110px] justify-start text-left font-normal border-blue-200",
-                                !schedule[key].closeTime && "text-muted-foreground",
-                              )}
-                            >
-                              <Clock className="mr-2 h-3.5 w-3.5 text-blue-500" />
-                              {schedule[key].closeTime || "Cierre"}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <div className="p-3 space-y-3">
-                              <div className="space-y-1">
-                                <h4 className="text-sm font-medium">Hora de cierre</h4>
-                                <p className="text-xs text-gray-500">Selecciona la hora de cierre para {day}</p>
-                              </div>
-                              <div className="grid grid-cols-4 gap-2">
-                                {["17:00", "18:00", "19:00", "20:00"].map((time) => (
-                                  <Button
-                                    key={time}
-                                    variant="outline"
-                                    size="sm"
-                                    className={cn(
-                                      "text-xs",
-                                      schedule[key].closeTime === time && "bg-blue-100 border-blue-300 text-blue-700",
-                                    )}
-                                    onClick={() => updateSchedule(key, "closeTime", time)}
-                                  >
-                                    {time}
-                                  </Button>
-                                ))}
-                              </div>
-                              <Input
-                                type="time"
-                                value={schedule[key].closeTime}
-                                onChange={(e) => updateSchedule(key, "closeTime", e.target.value)}
-                                className="w-full text-sm border-blue-200 focus:border-blue-400"
-                              />
-                            </div>
-                          </PopoverContent>
-                        </Popover>
-                      </div>
+            {Object.entries(schedule).map(([key, cfg]) => {
+              const dayName = key.charAt(0).toUpperCase() + key.slice(1)
+              return (
+                <div
+                  key={key}
+                  className={cn(
+                    "relative rounded-xl border p-4",
+                    cfg.isOpen
+                      ? "border-blue-200 bg-gradient-to-r from-blue-50 to-white"
+                      : "border-gray-200 bg-gray-50"
+                  )}
+                >
+                  <div className="absolute top-3 right-3">
+                    <Switch
+                      checked={cfg.isOpen}
+                      onCheckedChange={() => toggleDay(key)}
+                    />
+                  </div>
+                  <h3
+                    className={
+                      cfg.isOpen ? "text-blue-900" : "text-gray-500"
+                    }
+                  >
+                    {dayName}
+                  </h3>
+                  {cfg.isOpen ? (
+                    <div className="mt-2 flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          updateSchedule(key, "openTime", cfg.openTime)
+                        }
+                      >
+                        {cfg.openTime}
+                      </Button>
+                      <span>a</span>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          updateSchedule(key, "closeTime", cfg.closeTime)
+                        }
+                      >
+                        {cfg.closeTime}
+                      </Button>
                     </div>
                   ) : (
-                    <p className="mt-1 text-sm text-gray-500">Cerrado</p>
+                    <p className="text-gray-500">Cerrado</p>
                   )}
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </CardContent>
       </Card>
 
-      {/* Métodos de cobro */}
-      <Card className="border border-gray-200 shadow-sm overflow-hidden">
+      {/* Métodos de pago y servicios */}
+      <Card className="border-gray-200 shadow-sm">
         <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100 pb-4">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-blue-100 rounded-lg">
-              <CreditCard className="h-5 w-5 text-blue-600" />
+              <Info className="h-5 w-5 text-blue-600" />
             </div>
             <div>
-              <CardTitle className="text-lg font-semibold text-gray-800">Tipo de Cobro</CardTitle>
-              <CardDescription>Métodos de cobro aceptados en el PDE.</CardDescription>
+              <CardTitle className="text-lg font-semibold text-gray-800">
+                Pago y Servicios
+              </CardTitle>
+              <CardDescription>
+                Selecciona métodos y servicios extras.
+              </CardDescription>
             </div>
           </div>
         </CardHeader>
         <CardContent className="p-6 space-y-4">
+          {/* Pago */}
           <div className="space-y-3">
             {[
-              { id: "cards", label: "Tarjetas", description: "Aceptar pagos con tarjetas de crédito y débito" },
-              { id: "cash", label: "Efectivo", description: "Aceptar pagos en efectivo" },
-              {
-                id: "sinpe",
-                label: "Sinpe Movil",
-                description: "Recibir pago por medio de Sinpe Movil",
-              },
-            ].map((method) => (
+              { id: "cards", label: "Tarjetas" },
+              { id: "cash", label: "Efectivo" },
+              { id: "sinpe", label: "Sinpe" },
+            ].map((m) => (
               <div
-                key={method.id}
+                key={m.id}
                 className={cn(
-                  "flex items-center justify-between p-4 rounded-xl border transition-all duration-200 cursor-pointer hover:shadow-sm",
-                  paymentMethods[method.id]
+                  "flex justify-between p-4 rounded-xl border cursor-pointer",
+                  paymentMethods[m.id]
                     ? "border-blue-200 bg-gradient-to-r from-blue-50 to-white"
-                    : "border-gray-200 bg-gray-50 hover:border-gray-300",
+                    : "border-gray-200 bg-gray-50"
                 )}
-                onClick={() => togglePaymentMethod(method.id)}
+                onClick={() =>
+                  togglePaymentMethod(m.id as keyof typeof paymentMethods)
+                }
               >
-                <div className="flex items-center gap-3">
-                  <div
-                    className={cn(
-                      "w-5 h-5 rounded-full flex items-center justify-center transition-all duration-200",
-                      paymentMethods[method.id] ? "bg-blue-500 border-2 border-blue-500" : "border-2 border-gray-300",
-                    )}
-                  >
-                    {paymentMethods[method.id] && <div className="w-2 h-2 rounded-full bg-white" />}
-                  </div>
-                  <div>
-                    <h3 className={cn("font-medium", paymentMethods[method.id] ? "text-blue-900" : "text-gray-700")}>
-                      {method.label}
-                    </h3>
-                    <p className="text-sm text-gray-500">{method.description}</p>
-                  </div>
-                </div>
-                <div className="flex items-center">
-                  <span
-                    className={cn(
-                      "px-3 py-1 text-xs font-medium rounded-full",
-                      paymentMethods[method.id] ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-500",
-                    )}
-                  >
-                    {paymentMethods[method.id] ? "Sí" : "No"}
-                  </span>
-                </div>
+                <span>{m.label}</span>
+                <span>
+                  {paymentMethods[m.id] ? "Sí" : "No"}
+                </span>
               </div>
             ))}
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Servicios adicionales */}
-      <Card className="border border-gray-200 shadow-sm overflow-hidden">
-        <CardHeader className="bg-gradient-to-r from-blue-50 to-blue-100 pb-4">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <Truck className="h-5 w-5 text-blue-600" />
-            </div>
-            <div>
-              <CardTitle className="text-lg font-semibold text-gray-800">Servicios adicionales</CardTitle>
-              <CardDescription>Servicios complementarios ofrecidos en el PDE.</CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="p-6 space-y-4">
+          {/* Servicios */}
           <div className="space-y-3">
             {[
               {
                 id: "guidesPrinting",
                 label: "Impresión de guías",
-                description: "Ofrecer servicio de impresión de guías",
               },
-              { id: "parking", label: "Parqueo", description: "Disponer de parqueo para clientes" },
-              {
-                id: "accessibility",
-                label: "Accesibilidad para personas con discapacidad",
-                description: "Contar con facilidades para personas con discapacidad",
-              },
-            ].map((service) => (
+              { id: "parking", label: "Parqueo" },
+              { id: "accessibility", label: "Accesibilidad" },
+            ].map((s) => (
               <div
-                key={service.id}
+                key={s.id}
                 className={cn(
-                  "flex items-center justify-between p-4 rounded-xl border transition-all duration-200 cursor-pointer hover:shadow-sm",
-                  additionalServices[service.id]
+                  "flex justify-between p-4 rounded-xl border cursor-pointer",
+                  additionalServices[s.id]
                     ? "border-blue-200 bg-gradient-to-r from-blue-50 to-white"
-                    : "border-gray-200 bg-gray-50 hover:border-gray-300",
+                    : "border-gray-200 bg-gray-50"
                 )}
-                onClick={() => toggleAdditionalService(service.id)}
+                onClick={() =>
+                  toggleAdditionalService(
+                    s.id as keyof typeof additionalServices
+                  )
+                }
               >
-                <div className="flex items-center gap-3">
-                  <div
-                    className={cn(
-                      "w-5 h-5 rounded-full flex items-center justify-center transition-all duration-200",
-                      additionalServices[service.id]
-                        ? "bg-blue-500 border-2 border-blue-500"
-                        : "border-2 border-gray-300",
-                    )}
-                  >
-                    {additionalServices[service.id] && <div className="w-2 h-2 rounded-full bg-white" />}
-                  </div>
-                  <div>
-                    <h3
-                      className={cn("font-medium", additionalServices[service.id] ? "text-blue-900" : "text-gray-700")}
-                    >
-                      {service.label}
-                    </h3>
-                    <p className="text-sm text-gray-500">{service.description}</p>
-                  </div>
-                </div>
-                <div className="flex items-center">
-                  <span
-                    className={cn(
-                      "px-3 py-1 text-xs font-medium rounded-full",
-                      additionalServices[service.id] ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-500",
-                    )}
-                  >
-                    {additionalServices[service.id] ? "Sí" : "No"}
-                  </span>
-                </div>
+                <span>{s.label}</span>
+                <span>
+                  {additionalServices[s.id] ? "Sí" : "No"}
+                </span>
               </div>
             ))}
           </div>
@@ -611,5 +566,3 @@ const PDEGeneralDataForm = () => {
     </div>
   )
 }
-
-export default PDEGeneralDataForm

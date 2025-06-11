@@ -5,6 +5,7 @@ import { useEffect, useState } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { jwtDecode } from "jwt-decode"
 import { UserContext, User } from "@/context/UserContext"
+import { CompanyProvider } from "@/context/CompanyContext"
 
 const PUBLIC_ROUTES = ["/login", "/register", "/forgot-password", "/reset-password"]
 
@@ -16,12 +17,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   useEffect(() => {
     const token = localStorage.getItem("token")
 
-    // ✅ Si estás en una ruta pública, no verifiques token
     if (PUBLIC_ROUTES.includes(pathname)) return
-
-    // 🔒 Si no hay token, redirige
     if (!token) {
-      console.log('layout');
       router.push("/login")
       return
     }
@@ -32,7 +29,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
       if (isExpired) {
         localStorage.removeItem("token")
-        console.log('layout');
         router.push("/login")
         return
       }
@@ -42,16 +38,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     } catch (error) {
       console.error("❌ Token inválido:", error)
       localStorage.removeItem("token")
-      console.log('layout');
       router.push("/login")
     }
-  }, [pathname]) // ✅ Reaccionar cuando cambia la ruta
+  }, [pathname])
 
   return (
     <html lang="es">
       <body>
         <UserContext.Provider value={{ user, setUser }}>
-          {children}
+          <CompanyProvider>
+            {children}
+          </CompanyProvider>
         </UserContext.Provider>
       </body>
     </html>
