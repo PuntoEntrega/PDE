@@ -8,34 +8,33 @@ datasource db {
 }
 
 model Companies {
-  id                                               String                  @id @db.VarChar(36)
-  legal_name                                       String                  @db.VarChar(100)
-  trade_name                                       String?                 @db.VarChar(100)
-  company_type                                     Companies_company_type?
-  legal_id                                         String                  @db.VarChar(40)
-  fiscal_address                                   String?                 @db.VarChar(256)
-  contact_email                                    String?                 @db.VarChar(120)
-  contact_phone                                    String?                 @db.VarChar(30)
-  owner_user_id                                    String?                 @db.VarChar(36)
-  parent_company_id                                String?                 @db.VarChar(36)
-  active                                           Boolean?                @default(true)
-  created_at                                       DateTime?               @default(now()) @db.DateTime(0)
-  updated_at                                       DateTime?               @default(now()) @db.DateTime(0)
-  logo_url                                         String?                 @db.VarChar(255)
-  global_company_context_id                        String?                 @db.VarChar(36)
-  Users                                            Users?                  @relation(fields: [owner_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Companies_ibfk_1")
-  Companies                                        Companies?              @relation("CompaniesToCompanies", fields: [parent_company_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Companies_ibfk_2")
-  other_Companies                                  Companies[]             @relation("CompaniesToCompanies")
-  Users_Companies_global_company_context_idToUsers Users?                  @relation("Companies_global_company_context_idToUsers", fields: [global_company_context_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Companies_ibfk_global_ctx")
-  CompanyBankAccounts                              CompanyBankAccounts[]
-  CompanyBillingConfig                             CompanyBillingConfig[]
-  CompanyStatusHistory                             CompanyStatusHistory[]
-  DeliveryPoints                                   DeliveryPoints[]
-  LegalRepresentatives                             LegalRepresentatives[]
+  id                   String                  @id @db.VarChar(36)
+  legal_name           String                  @db.VarChar(100)
+  trade_name           String?                 @db.VarChar(100)
+  company_type         Companies_company_type?
+  legal_id             String                  @db.VarChar(40)
+  fiscal_address       String?                 @db.VarChar(256)
+  contact_email        String?                 @db.VarChar(120)
+  contact_phone        String?                 @db.VarChar(30)
+  owner_user_id        String?                 @db.VarChar(36)
+  parent_company_id    String?                 @db.VarChar(36)
+  active               Boolean?                @default(true)
+  status               Companies_status?       @default(draft)
+  created_at           DateTime?               @default(now()) @db.DateTime(0)
+  updated_at           DateTime?               @default(now()) @db.DateTime(0)
+  logo_url             String?                 @db.VarChar(255)
+  Users                Users?                  @relation(fields: [owner_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Companies_ibfk_1")
+  Companies            Companies?              @relation("CompaniesToCompanies", fields: [parent_company_id], references: [id], map: "fk_parent_company")
+  other_Companies      Companies[]             @relation("CompaniesToCompanies")
+  CompanyBankAccounts  CompanyBankAccounts[]
+  CompanyBillingConfig CompanyBillingConfig[]
+  CompanyStatusHistory CompanyStatusHistory[]
+  DeliveryPoints       DeliveryPoints[]
+  LegalRepresentatives LegalRepresentatives[]
+  UserCompany          UserCompany[]
 
   @@index([owner_user_id], map: "owner_user_id")
-  @@index([parent_company_id], map: "parent_company_id")
-  @@index([global_company_context_id], map: "Companies_ibfk_global_ctx")
+  @@index([parent_company_id], map: "fk_parent_company")
 }
 
 model CompanyBankAccounts {
@@ -111,50 +110,49 @@ model DeliveryPointBankAccounts {
 }
 
 model DeliveryPoints {
-  id                                                String                      @id @db.VarChar(36)
-  company_id                                        String?                     @db.VarChar(36)
-  name                                              String                      @db.VarChar(100)
-  trade_name                                        String?                     @db.VarChar(100)
-  whatsapp_contact                                  String?                     @db.VarChar(30)
-  business_email                                    String?                     @db.VarChar(120)
-  document_type_id                                  String?                     @db.VarChar(36)
-  identification_number                             String?                     @db.VarChar(40)
-  manager_name                                      String?                     @db.VarChar(100)
-  manager_email                                     String?                     @db.VarChar(120)
-  manager_phone                                     String?                     @db.VarChar(30)
-  province                                          String?                     @db.VarChar(60)
-  canton                                            String?                     @db.VarChar(60)
-  district                                          String?                     @db.VarChar(60)
-  exact_address                                     String?                     @db.VarChar(256)
-  postal_code                                       String?                     @db.VarChar(12)
-  latitude                                          Float?                      @db.Float
-  longitude                                         Float?                      @db.Float
-  map_snapshot_url                                  String?                     @db.VarChar(256)
+  id                                                String                       @id @db.VarChar(36)
+  company_id                                        String?                      @db.VarChar(36)
+  name                                              String                       @db.VarChar(100)
+  trade_name                                        String?                      @db.VarChar(100)
+  whatsapp_contact                                  String?                      @db.VarChar(30)
+  business_email                                    String?                      @db.VarChar(120)
+  document_type_id                                  String?                      @db.VarChar(36)
+  identification_number                             String?                      @db.VarChar(40)
+  manager_name                                      String?                      @db.VarChar(100)
+  manager_email                                     String?                      @db.VarChar(120)
+  manager_phone                                     String?                      @db.VarChar(30)
+  province                                          String?                      @db.VarChar(60)
+  canton                                            String?                      @db.VarChar(60)
+  district                                          String?                      @db.VarChar(60)
+  exact_address                                     String?                      @db.VarChar(256)
+  postal_code                                       String?                      @db.VarChar(12)
+  latitude                                          Float?                       @db.Float
+  longitude                                         Float?                       @db.Float
+  map_snapshot_url                                  String?                      @db.VarChar(256)
   schedule_json                                     Json?
   services_json                                     Json?
-  storage_area_m2                                   Decimal?                    @db.Decimal(10, 2)
-  accepts_xs                                        Boolean?                    @default(false)
-  accepts_s                                         Boolean?                    @default(false)
-  accepts_m                                         Boolean?                    @default(false)
-  accepts_l                                         Boolean?                    @default(false)
-  accepts_xl                                        Boolean?                    @default(false)
-  accepts_xxl                                       Boolean?                    @default(false)
-  accepts_xxxl                                      Boolean?                    @default(false)
-  active                                            Boolean?                    @default(true)
-  created_at                                        DateTime?                   @default(now()) @db.DateTime(0)
-  updated_at                                        DateTime?                   @default(now()) @db.DateTime(0)
-  global_company_context_id                         String?                     @db.VarChar(36)
+  storage_area_m2                                   Decimal?                     @db.Decimal(10, 2)
+  accepts_xs                                        Boolean?                     @default(false)
+  accepts_s                                         Boolean?                     @default(false)
+  accepts_m                                         Boolean?                     @default(false)
+  accepts_l                                         Boolean?                     @default(false)
+  accepts_xl                                        Boolean?                     @default(false)
+  accepts_xxl                                       Boolean?                     @default(false)
+  accepts_xxxl                                      Boolean?                     @default(false)
+  status                                            DeliveryPoints_status?       @default(draft)
+  active                                            Boolean?                     @default(true)
+  created_at                                        DateTime?                    @default(now()) @db.DateTime(0)
+  updated_at                                        DateTime?                    @default(now()) @db.DateTime(0)
   DeliveryHistory                                   DeliveryHistory[]
   DeliveryPointBankAccounts                         DeliveryPointBankAccounts[]
-  Companies                                         Companies?                  @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "DeliveryPoints_ibfk_1")
-  DocumentTypes                                     DocumentTypes?              @relation(fields: [document_type_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "DeliveryPoints_ibfk_2")
-  Users                                             Users?                      @relation(fields: [global_company_context_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "DeliveryPoints_ibfk_global_ctx")
-  Guides_Guides_collection_point_idToDeliveryPoints Guides[]                    @relation("Guides_collection_point_idToDeliveryPoints")
-  Guides_Guides_delivery_point_idToDeliveryPoints   Guides[]                    @relation("Guides_delivery_point_idToDeliveryPoints")
+  DeliveryPointStatusHistory                        DeliveryPointStatusHistory[]
+  company Companies? @relation(fields: [company_id], references: [id], map: "DeliveryPoints_ibfk_1")
+  Guides_Guides_collection_point_idToDeliveryPoints Guides[]                     @relation("Guides_collection_point_idToDeliveryPoints")
+  Guides_Guides_delivery_point_idToDeliveryPoints   Guides[]                     @relation("Guides_delivery_point_idToDeliveryPoints")
+  UserPde                                           UserPde[]
 
   @@index([company_id], map: "company_id")
   @@index([document_type_id], map: "document_type_id")
-  @@index([global_company_context_id], map: "DeliveryPoints_ibfk_global_ctx")
 }
 
 model DocumentTypes {
@@ -163,7 +161,6 @@ model DocumentTypes {
   created_at           DateTime?              @default(now()) @db.DateTime(0)
   updated_at           DateTime?              @default(now()) @db.DateTime(0)
   CompanyBillingConfig CompanyBillingConfig[]
-  DeliveryPoints       DeliveryPoints[]
   LegalRepresentatives LegalRepresentatives[]
   Users                Users[]
 }
@@ -288,36 +285,35 @@ model Senders {
 }
 
 model Users {
-  id                                                       String                 @id @default(dbgenerated("(uuid())")) @db.VarChar(36)
-  document_type_id                                         String?                @db.VarChar(36)
-  identification_number                                    String                 @db.VarChar(40)
-  first_name                                               String                 @db.VarChar(60)
-  last_name                                                String                 @db.VarChar(60)
-  username                                                 String                 @db.VarChar(40)
-  email                                                    String                 @db.VarChar(120)
-  phone                                                    String?                @db.VarChar(30)
-  avatar_url                                               String?                @db.VarChar(256)
-  role_id                                                  String?                @db.VarChar(36)
-  password_hash                                            String                 @db.VarChar(255)
-  active                                                   Boolean?               @default(true)
-  status                                                   Users_status?          @default(draft)
-  created_at                                               DateTime?              @default(now()) @db.DateTime(0)
-  updated_at                                               DateTime?              @default(now()) @db.DateTime(0)
-  verified                                                 Boolean?               @default(false)
-  global_company_context_id                                String?                @db.VarChar(36)
+  id                                                       String                       @id @default(dbgenerated("(uuid())")) @db.VarChar(36)
+  document_type_id                                         String?                      @db.VarChar(36)
+  identification_number                                    String                       @unique(map: "uq_users_identification_number") @db.VarChar(40)
+  first_name                                               String                       @db.VarChar(60)
+  last_name                                                String                       @db.VarChar(60)
+  username                                                 String                       @unique(map: "username") @db.VarChar(40)
+  email                                                    String                       @unique(map: "uq_users_email") @db.VarChar(120)
+  phone                                                    String?                      @unique(map: "uq_users_phone") @db.VarChar(30)
+  avatar_url                                               String?                      @db.VarChar(256)
+  role_id                                                  String?                      @db.VarChar(36)
+  password_hash                                            String                       @db.VarChar(255)
+  active                                                   Boolean?                     @default(true)
+  status                                                   Users_status?                @default(draft)
+  created_at                                               DateTime?                    @default(now()) @db.DateTime(0)
+  updated_at                                               DateTime?                    @default(now()) @db.DateTime(0)
+  verified                                                 Boolean?                     @default(false)
+  global_company_context_id                                String?                      @db.VarChar(36)
   Companies                                                Companies[]
-  Companies_Companies_global_company_context_idToUsers     Companies[]            @relation("Companies_global_company_context_idToUsers")
   CompanyStatusHistory                                     CompanyStatusHistory[]
   DeliveryHistory                                          DeliveryHistory[]
-  DeliveryPoints                                           DeliveryPoints[]
+  DeliveryPointStatusHistory                               DeliveryPointStatusHistory[]
   Guides                                                   Guides[]
   Incidents                                                Incidents[]
-  UserStatusHistory_UserStatusHistory_user_idToUsers       UserStatusHistory[]    @relation("UserStatusHistory_user_idToUsers")
-  UserStatusHistory_UserStatusHistory_changed_by_idToUsers UserStatusHistory[]    @relation("UserStatusHistory_changed_by_idToUsers")
-  DocumentTypes                                            DocumentTypes?         @relation(fields: [document_type_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Users_ibfk_1")
-  Roles                                                    Roles?                 @relation(fields: [role_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Users_ibfk_2")
-  Users                                                    Users?                 @relation("UsersToUsers", fields: [global_company_context_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Users_ibfk_global_ctx")
-  other_Users                                              Users[]                @relation("UsersToUsers")
+  UserCompany                                              UserCompany[]
+  UserPde                                                  UserPde[]
+  UserStatusHistory_UserStatusHistory_user_idToUsers       UserStatusHistory[]          @relation("UserStatusHistory_user_idToUsers")
+  UserStatusHistory_UserStatusHistory_changed_by_idToUsers UserStatusHistory[]          @relation("UserStatusHistory_changed_by_idToUsers")
+  DocumentTypes                                            DocumentTypes?               @relation(fields: [document_type_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Users_ibfk_1")
+  Roles                                                    Roles?                       @relation(fields: [role_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Users_ibfk_2")
 
   @@index([document_type_id], map: "document_type_id")
   @@index([role_id], map: "role_id")
@@ -325,18 +321,18 @@ model Users {
 }
 
 model CompanyStatusHistory {
-  id              String    @id @default(dbgenerated("(uuid())")) @db.VarChar(36)
-  company_id      String    @db.VarChar(36)
-  changed_by_id   String    @db.VarChar(36)
-  previous_status String    @db.VarChar(20)
-  new_status      String    @db.VarChar(20)
-  reason          String    @db.VarChar(256)
-  created_at      DateTime? @default(now()) @db.DateTime(0)
-  Companies       Companies @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "CompanyStatusHistory_ibfk_1")
-  Users           Users     @relation(fields: [changed_by_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "CompanyStatusHistory_ibfk_2")
+  id              String                               @id @db.VarChar(36)
+  company_id      String                               @db.VarChar(36)
+  changed_by_id   String                               @db.VarChar(36)
+  previous_status CompanyStatusHistory_previous_status
+  new_status      CompanyStatusHistory_new_status
+  reason          String                               @db.Text
+  created_at      DateTime?                            @default(now()) @db.DateTime(0)
+  Companies       Companies                            @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "CompanyStatusHistory_ibfk_1")
+  Users           Users                                @relation(fields: [changed_by_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "CompanyStatusHistory_ibfk_2")
 
-  @@index([changed_by_id], map: "changed_by_id")
-  @@index([company_id], map: "company_id")
+  @@index([company_id], map: "fk_company")
+  @@index([changed_by_id], map: "fk_user")
 }
 
 model Notifications {
@@ -362,6 +358,45 @@ model UserStatusHistory {
 
   @@index([changed_by_id], map: "changed_by_id")
   @@index([user_id], map: "user_id")
+}
+
+model DeliveryPointStatusHistory {
+  id                String                                      @id @default("uuid()") @db.VarChar(36)
+  delivery_point_id String                                      @db.VarChar(36)
+  changed_by_id     String                                      @db.VarChar(36)
+  previous_status   DeliveryPointStatusHistory_previous_status?
+  new_status        DeliveryPointStatusHistory_new_status?
+  reason            String?                                     @db.Text
+  changed_at        DateTime?                                   @default(now()) @db.DateTime(0)
+  DeliveryPoints    DeliveryPoints                              @relation(fields: [delivery_point_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "DeliveryPointStatusHistory_ibfk_1")
+  Users             Users                                       @relation(fields: [changed_by_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "DeliveryPointStatusHistory_ibfk_2")
+
+  @@index([changed_by_id], map: "changed_by_id")
+  @@index([delivery_point_id], map: "delivery_point_id")
+}
+
+model UserCompany {
+  id         String    @id @db.VarChar(36)
+  user_id    String    @db.VarChar(36)
+  company_id String    @db.VarChar(36)
+  created_at DateTime? @default(now()) @db.DateTime(0)
+  Companies  Companies @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usercompany_company")
+  Users      Users     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_usercompany_user")
+
+  @@unique([user_id, company_id], map: "uq_user_company")
+  @@index([company_id], map: "fk_usercompany_company")
+}
+
+model UserPde {
+  id                String         @id @db.VarChar(36)
+  user_id           String         @db.VarChar(36)
+  delivery_point_id String         @db.VarChar(36)
+  created_at        DateTime?      @default(now()) @db.DateTime(0)
+  DeliveryPoints    DeliveryPoints @relation(fields: [delivery_point_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_userpde_delivery_point")
+  Users             Users          @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_userpde_user")
+
+  @@unique([user_id, delivery_point_id], map: "uq_user_delivery_point")
+  @@index([delivery_point_id], map: "fk_userpde_delivery_point")
 }
 
 enum CompanyBillingConfig_billing_type {
@@ -424,6 +459,54 @@ enum Notifications_type {
 }
 
 enum Users_status {
+  draft
+  under_review
+  active
+  inactive
+  rejected
+}
+
+enum DeliveryPoints_status {
+  draft
+  under_review
+  active
+  inactive
+  rejected
+}
+
+enum DeliveryPointStatusHistory_previous_status {
+  draft
+  under_review
+  active
+  inactive
+  rejected
+}
+
+enum DeliveryPointStatusHistory_new_status {
+  draft
+  under_review
+  active
+  inactive
+  rejected
+}
+
+enum Companies_status {
+  draft
+  under_review
+  active
+  inactive
+  rejected
+}
+
+enum CompanyStatusHistory_previous_status {
+  draft
+  under_review
+  active
+  inactive
+  rejected
+}
+
+enum CompanyStatusHistory_new_status {
   draft
   under_review
   active

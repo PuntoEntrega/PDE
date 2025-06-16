@@ -17,5 +17,5 @@ export const routeAllowedLevels: Record<string, number[]> = {
   "/configuration/pde": [3, 4, 5, 6, 7],
   "/configuration/status-info": [3, 4, 5, 6, 7],
   "/admin-panel": [4, 5, 6, 7],
-  "/": [1, 2, 3, 4, 5, 6, 7],
+  "/pde": [4, 5, 6, 7],
 };
