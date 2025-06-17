@@ -48,6 +48,7 @@
     "cmdk": "^1.1.1",
     "cookie": "^1.0.2",
     "country-flag-icons": "^1.5.19",
+    "date-fns": "^4.1.0",
     "fs": "^0.0.1-security",
     "ioredis": "^5.6.1",
     "jsonwebtoken": "^9.0.2",

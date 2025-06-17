@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getPDEList } from "@/Services/pde";
+import { getPDEList } from "@/Services/pde/pde";
 import { useUser } from "@/context/UserContext";
-import { PDECard } from "./pde-card";
+import { PDETable } from "./pde-table";
 import { Loader2 } from "lucide-react";
 
 export function PDEList() {
@@ -32,10 +32,8 @@ export function PDEList() {
   if (loading) return <Loader2 className="animate-spin" />;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 p-6">
-      {pdes.map((pde) => (
-        <PDECard key={pde.id} pde={pde} />
-      ))}
+    <div className="p-6">
+      <PDETable pdes={pdes} />
     </div>
   );
 }

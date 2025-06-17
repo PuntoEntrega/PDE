@@ -9,26 +9,34 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const deliveryPoints = await prisma.deliveryPoints.findMany({
+    const pdes = await prisma.deliveryPoints.findMany({
       where: {
         company: {
           owner_user_id: user.sub,
         },
       },
-      include: {
+      select: {
+        id: true, // Para acciones internas
+        name: true,
+        created_at: true,
+        updated_at: true,
+        active: true,
         company: {
           select: {
-            id: true,
             trade_name: true,
-            logo_url: true,
-            company_type: true,
-            active: true,
           },
         },
       },
     });
 
-    return NextResponse.json(deliveryPoints);
+    // Agregar campo temporal de espacio ficticio
+    const enriched = pdes.map((pde) => ({
+      ...pde,
+      usage: Math.floor(Math.random() * 51), // Ej: 0-50
+      capacity: 50,
+    }));
+
+    return NextResponse.json(enriched);
   } catch (error) {
     console.error("Error al obtener PDEs:", error);
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
