@@ -66,9 +66,11 @@ export function PDETable({ pdes }: PDETableProps) {
                     <Eye className="h-4 w-4" />
                   </Button>
                 </Link>
-                <Button size="icon" variant="outline" className="h-8 w-8">
-                  <Pencil className="h-4 w-4" />
-                </Button>
+                <Link href={`/pde/${pde.id}/edit`}>
+                  <Button size="icon" variant="outline" className="h-8 w-8">
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                </Link>
                 <Button size="icon" variant="outline" className="h-8 w-8">
                   <Share2 className="h-4 w-4" />
                 </Button>
