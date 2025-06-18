@@ -1,3 +1,4 @@
+// src/app/companies/page.tsx
 import { CompaniesList } from "@/Components/Companies/companies-list"
 import { Suspense } from "react"
 import { Loader2 } from "lucide-react"

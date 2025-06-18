@@ -1,3 +1,4 @@
+// src/app/Components/Companies/company-details.tsx
 "use client"
 
 import type React from "react"

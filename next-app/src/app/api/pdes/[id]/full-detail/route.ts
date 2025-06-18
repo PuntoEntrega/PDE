@@ -11,7 +11,16 @@ export async function GET(
   try {
     const pde = await prisma.deliveryPoints.findUnique({
       where: { id: pdeId },
-      include: { company: true }, // asegúrate de incluir la relación
+      include: {
+        company: {
+          select: {
+            trade_name: true,
+            logo_url: true,
+            company_type: true,
+            active: true
+          }
+        }
+      },  
     })
 
     if (!pde) {
