@@ -1,3 +1,4 @@
+// src/app/Components/Companies/companies-list.tsx
 "use client"
 
 import { useEffect, useState } from "react"

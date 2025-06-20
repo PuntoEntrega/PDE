@@ -1,13 +1,14 @@
-import { Suspense } from "react";
-import { Loader2 } from "lucide-react";
-import { PDEDetails } from "@/Components/PDE/pde-details";
+// v0 was here
+import { Suspense } from "react"
+import { Loader2 } from "lucide-react"
+import { PDEDetails } from "@/Components/PDE/pde-details"
 
 interface PDEDetailsPageProps {
-  params: { pdeId: string };
+  params: { pdeId: string }
 }
 
 export default function PDEDetailsPage({ params }: PDEDetailsPageProps) {
-  const { pdeId } = params;
+  const { pdeId } = params
 
   return (
     <div>
@@ -21,5 +22,5 @@ export default function PDEDetailsPage({ params }: PDEDetailsPageProps) {
         <PDEDetails pdeId={pdeId} />
       </Suspense>
     </div>
-  );
+  )
 }

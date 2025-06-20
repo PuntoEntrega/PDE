@@ -1,29 +1,42 @@
+// v0 was here
 "use client"
 
 import { useEffect, useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card"
+import { Card, CardContent } from "@/Components/ui/card"
 import { Badge } from "@/Components/ui/badge"
 import { Button } from "@/Components/ui/button"
 import { Input } from "@/Components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/Components/ui/select"
-import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/Components/ui/dialog"
-import { Building, Search, Filter, CheckCircle, XCircle, Pause, RotateCcw, Mail, Phone } from "lucide-react"
+import { Building2, Search, Filter, Mail, FileText, Eye } from "lucide-react"
+import { Avatar, AvatarFallback, AvatarImage } from "@/Components/ui/avatar"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/Components/ui/tooltip"
 
 const statuses = ["under_review", "active", "inactive", "rejected"] as const
 
-interface ReviewCompaniesClientProps {
-  adminId: string
+// Función para traducir estados al español
+const getStatusLabel = (status: string) => {
+  const statusLabels = {
+    under_review: "En Revisión",
+    active: "Activa",
+    inactive: "Inactiva",
+    rejected: "Rechazada",
+  }
+  return statusLabels[status as keyof typeof statusLabels] || status
 }
 
-export default function ReviewCompaniesClient({ adminId }: ReviewCompaniesClientProps) {
+interface ReviewCompaniesClientProps {
+  adminId: string
+  onItemSelect: (item: { id: string; type: "companies"; name: string }) => void
+}
+
+export default function ReviewCompaniesClient({ adminId, onItemSelect }: ReviewCompaniesClientProps) {
   const [statusFilter, setStatusFilter] = useState<string>("under_review")
   const [search, setSearch] = useState("")
   const [companies, setCompanies] = useState<any[]>([])
-  const [selectedCompany, setSelectedCompany] = useState<any>(null)
-  const [newStatus, setNewStatus] = useState<string>("")
-  const [reason, setReason] = useState<string>("")
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    setLoading(true)
     fetch("/api/companies/review-list")
       .then(async (r) => {
         const txt = await r.text()
@@ -36,33 +49,8 @@ export default function ReviewCompaniesClient({ adminId }: ReviewCompaniesClient
         }
       })
       .catch((e) => console.error("Fetch error:", e))
+      .finally(() => setLoading(false))
   }, [statusFilter])
-
-  const handleOpenChange = (open: boolean) => {
-    if (!open) {
-      setSelectedCompany(null)
-      setNewStatus("")
-      setReason("")
-    }
-  }
-
-  const handleStatusSubmit = async () => {
-    if (!selectedCompany || !newStatus || !reason) return
-
-    const res = await fetch(`/api/companies/${selectedCompany.id}/change-status`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        newStatus,
-        reason,
-        changed_by_id: adminId,
-      }),
-    })
-
-    if (res.ok) {
-      setCompanies((prev) => prev.map((c) => (c.id === selectedCompany.id ? { ...c, status: newStatus, reason } : c)))
-    }
-  }
 
   const filteredCompanies = companies.filter(
     (c) =>
@@ -72,141 +60,195 @@ export default function ReviewCompaniesClient({ adminId }: ReviewCompaniesClient
   )
 
   const getStatusBadge = (status: string) => {
-    const variants = {
-      under_review: "bg-yellow-100 text-yellow-800 border-yellow-200",
-      active: "bg-green-100 text-green-800 border-green-200",
-      inactive: "bg-gray-100 text-gray-800 border-gray-200",
-      rejected: "bg-red-100 text-red-800 border-red-200",
+    switch (status) {
+      case "under_review":
+        return (
+          <Badge variant="outline" className="bg-yellow-100 text-yellow-700 border-yellow-300">
+            En Revisión
+          </Badge>
+        )
+      case "active":
+        return (
+          <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
+            Activa
+          </Badge>
+        )
+      case "inactive":
+        return (
+          <Badge variant="outline" className="bg-gray-100 text-gray-700 border-gray-300">
+            Inactiva
+          </Badge>
+        )
+      case "rejected":
+        return (
+          <Badge variant="outline" className="bg-red-100 text-red-700 border-red-300">
+            Rechazada
+          </Badge>
+        )
+      default:
+        return (
+          <Badge variant="outline" className="bg-gray-100 text-gray-700 border-gray-300">
+            Desconocido
+          </Badge>
+        )
     }
-    return variants[status as keyof typeof variants] || variants.under_review
   }
 
-  const getActionButton = (statusOption: string) => {
-    const configs = {
-      active: { icon: CheckCircle, label: "Aprobar", variant: "default" as const },
-      rejected: { icon: XCircle, label: "Rechazar", variant: "destructive" as const },
-      inactive: { icon: Pause, label: "Desactivar", variant: "secondary" as const },
-      under_review: { icon: RotateCcw, label: "Volver a revisión", variant: "outline" as const },
-    }
-    return configs[statusOption as keyof typeof configs]
+  const getStatusCount = (status: string) => {
+    return companies.filter((company) => company.status === status).length
   }
 
   return (
-    <Card className="border-gray-200 shadow-sm">
-      <CardHeader className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-t-lg border-b">
-        <CardTitle className="text-xl font-semibold text-gray-800 flex items-center">
-          <div className="p-2 bg-green-100 rounded-lg mr-3">
-            <Building className="h-6 w-6 text-green-600" />
+    <div className="space-y-6">
+      {/* Header con estadísticas */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center">
+          <div className="p-3 bg-green-100 rounded-lg mr-3 shadow-sm">
+            <Building2 className="h-6 w-6 text-green-600" />
           </div>
-          Empresas en Revisión
-        </CardTitle>
-        <p className="text-sm text-gray-600 mt-2">Gestiona las solicitudes de empresas pendientes</p>
-      </CardHeader>
-
-      <CardContent className="p-6">
-        <div className="flex flex-col sm:flex-row items-center gap-4 mb-6">
-          <div className="relative w-full sm:w-1/2">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Buscar por razón social o nombre comercial"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-
-          <div className="relative w-full sm:w-52">
-            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 z-10" />
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="pl-10">
-                <SelectValue placeholder="Estado" />
-              </SelectTrigger>
-              <SelectContent>
-                {statuses.map((s) => (
-                  <SelectItem key={s} value={s}>
-                    {s}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div>
+            <h2 className="text-xl font-semibold text-gray-800">Empresas en Revisión</h2>
+            <p className="text-sm text-gray-600 mt-1">Haz clic en "Revisar" para ver los detalles completos</p>
           </div>
         </div>
+        <div className="flex gap-2">
+          {statuses.map((status) => (
+            <TooltipProvider key={status}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="text-center p-2 bg-white rounded-lg border border-gray-200 min-w-[60px] shadow-sm">
+                    <div className="text-lg font-bold text-gray-800">{getStatusCount(status)}</div>
+                    <div className="text-xs text-gray-500">{getStatusLabel(status)}</div>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>
+                    {getStatusCount(status)} empresas en estado {getStatusLabel(status)}
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          ))}
+        </div>
+      </div>
 
-        <div className="space-y-4">
-          {filteredCompanies.map((company) => (
-            <Card key={company.id} className="border border-gray-200 hover:shadow-md transition-shadow">
-              <CardContent className="p-4">
+      {/* Controles de filtrado */}
+      <Card className="shadow-sm border border-gray-200 rounded-xl">
+        <CardContent className="p-4">
+          <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Buscar por razón social o nombre comercial..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-10 bg-white border-gray-200 focus-visible:ring-blue-500"
+              />
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-gray-500" />
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[180px] bg-white border-gray-200">
+                  <SelectValue placeholder="Filtrar por estado" />
+                </SelectTrigger>
+                <SelectContent>
+                  {statuses.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {getStatusLabel(s)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Lista de empresas */}
+      <div className="space-y-4">
+        {loading ? (
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
+            <p className="text-gray-500 mt-2">Cargando empresas...</p>
+          </div>
+        ) : filteredCompanies.length > 0 ? (
+          filteredCompanies.map((company) => (
+            <Card key={company.id} className="border border-gray-200 hover:shadow-md transition-all duration-200">
+              <CardContent className="p-6">
                 <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900">{company.legal_name}</h3>
-                    <div className="mt-2 space-y-1">
-                      <p className="text-sm text-gray-600 flex items-center">
-                        <span className="font-medium mr-2">Nombre Comercial:</span> {company.trade_name || "—"}
-                      </p>
-                      <p className="text-sm text-gray-600 flex items-center">
-                        <Mail className="h-4 w-4 mr-2 text-gray-400" />
-                        {company.contact_email || "—"}
-                      </p>
-                      <p className="text-sm text-gray-600 flex items-center">
-                        <Phone className="h-4 w-4 mr-2 text-gray-400" />
-                        {company.contact_phone || "—"}
-                      </p>
-                      <p className="text-sm text-gray-600 flex items-center">
-                        <span className="font-medium mr-2">Razón actual:</span> {company.reason || "—"}
-                      </p>
+                  <div className="flex items-start gap-4 flex-1">
+                    <Avatar className="h-12 w-12 border-2 border-white shadow-sm rounded-lg">
+                      <AvatarImage
+                        src={company.logo_url || "/placeholder.svg?height=48&width=48&query=company+logo"}
+                        alt={`Logo de ${company.legal_name}`}
+                        className="object-contain p-1"
+                      />
+                      <AvatarFallback className="bg-green-100 text-green-700 rounded-lg">
+                        {company.legal_name
+                          ?.split(" ")
+                          .map((n) => n[0])
+                          .join("")
+                          .toUpperCase()
+                          .slice(0, 2) || "EM"}
+                      </AvatarFallback>
+                    </Avatar>
+
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">{company.legal_name}</h3>
+                      <div className="space-y-2">
+                        <div className="flex items-center text-sm text-gray-600">
+                          <Building2 className="h-4 w-4 mr-2 text-gray-400" />
+                          <span className="font-medium mr-2">Nombre Comercial:</span>
+                          <span>{company.trade_name || "No especificado"}</span>
+                        </div>
+                        <div className="flex items-center text-sm text-gray-600">
+                          <FileText className="h-4 w-4 mr-2 text-gray-400" />
+                          <span className="font-medium mr-2">Cédula Jurídica:</span>
+                          <span>{company.legal_id || "No especificada"}</span>
+                        </div>
+                        <div className="flex items-center text-sm text-gray-600">
+                          <Mail className="h-4 w-4 mr-2 text-gray-400" />
+                          <span className="font-medium mr-2">Email:</span>
+                          <a href={`mailto:${company.contact_email}`} className="text-blue-600 hover:underline">
+                            {company.contact_email || "No especificado"}
+                          </a>
+                        </div>
+                        <div className="flex items-start text-sm text-gray-600">
+                          <FileText className="h-4 w-4 mr-2 text-gray-400 mt-0.5" />
+                          <span className="font-medium mr-2">Razón actual:</span>
+                          <span>{company.reason || "Sin especificar"}</span>
+                        </div>
+                      </div>
+                      <div className="mt-3">{getStatusBadge(company.status)}</div>
                     </div>
-                    <Badge className={`mt-3 ${getStatusBadge(company.status)}`}>{company.status}</Badge>
                   </div>
 
-                  <div className="flex flex-col gap-2 ml-4">
-                    {["active", "rejected", "inactive", "under_review"].map((statusOption) => {
-                      const config = getActionButton(statusOption)
-                      const Icon = config.icon
-
-                      return (
-                        <Dialog key={statusOption} onOpenChange={handleOpenChange}>
-                          <DialogTrigger asChild>
-                            <Button
-                              variant={config.variant}
-                              size="sm"
-                              className="justify-start"
-                              onClick={() => {
-                                setSelectedCompany(company)
-                                setNewStatus(statusOption)
-                              }}
-                            >
-                              <Icon className="h-4 w-4 mr-2" />
-                              {config.label}
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent className="space-y-4 bg-white">
-                            <DialogTitle>Motivo del cambio</DialogTitle>
-                            <p className="text-sm text-gray-600">
-                              Indica el motivo para cambiar el estado a <strong>{newStatus}</strong>.
-                            </p>
-                            <Input
-                              placeholder="Motivo del cambio"
-                              value={reason}
-                              onChange={(e) => setReason(e.target.value)}
-                            />
-                            <Button onClick={handleStatusSubmit} className="w-full">
-                              Confirmar cambio
-                            </Button>
-                          </DialogContent>
-                        </Dialog>
-                      )
-                    })}
+                  <div className="ml-4">
+                    <Button
+                      onClick={() => onItemSelect({ id: company.id, type: "companies", name: company.legal_name })}
+                      className="bg-green-600 hover:bg-green-700 text-white"
+                    >
+                      <Eye className="h-4 w-4 mr-2" />
+                      Revisar
+                    </Button>
                   </div>
                 </div>
               </CardContent>
             </Card>
-          ))}
-
-          {filteredCompanies.length === 0 && (
-            <div className="text-center py-8 text-gray-500">No se encontraron empresas con el filtro aplicado</div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+          ))
+        ) : (
+          <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
+            <Building2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-700 mb-2">No se encontraron empresas</h3>
+            <p className="text-gray-500">
+              {search || statusFilter !== "under_review"
+                ? "No hay empresas que coincidan con los filtros aplicados."
+                : "No hay empresas pendientes de revisión en este momento."}
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
   )
 }

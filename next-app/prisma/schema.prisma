@@ -116,11 +116,6 @@ model DeliveryPoints {
   trade_name                                        String?                      @db.VarChar(100)
   whatsapp_contact                                  String?                      @db.VarChar(30)
   business_email                                    String?                      @db.VarChar(120)
-  document_type_id                                  String?                      @db.VarChar(36)
-  identification_number                             String?                      @db.VarChar(40)
-  manager_name                                      String?                      @db.VarChar(100)
-  manager_email                                     String?                      @db.VarChar(120)
-  manager_phone                                     String?                      @db.VarChar(30)
   province                                          String?                      @db.VarChar(60)
   canton                                            String?                      @db.VarChar(60)
   district                                          String?                      @db.VarChar(60)
@@ -146,13 +141,12 @@ model DeliveryPoints {
   DeliveryHistory                                   DeliveryHistory[]
   DeliveryPointBankAccounts                         DeliveryPointBankAccounts[]
   DeliveryPointStatusHistory                        DeliveryPointStatusHistory[]
-  company Companies? @relation(fields: [company_id], references: [id], map: "DeliveryPoints_ibfk_1")
+  company                                           Companies?                   @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "DeliveryPoints_ibfk_1")
   Guides_Guides_collection_point_idToDeliveryPoints Guides[]                     @relation("Guides_collection_point_idToDeliveryPoints")
   Guides_Guides_delivery_point_idToDeliveryPoints   Guides[]                     @relation("Guides_delivery_point_idToDeliveryPoints")
   UserPde                                           UserPde[]
 
   @@index([company_id], map: "company_id")
-  @@index([document_type_id], map: "document_type_id")
 }
 
 model DocumentTypes {
@@ -287,12 +281,12 @@ model Senders {
 model Users {
   id                                                       String                       @id @default(dbgenerated("(uuid())")) @db.VarChar(36)
   document_type_id                                         String?                      @db.VarChar(36)
-  identification_number                                    String                       @unique(map: "uq_users_identification_number") @db.VarChar(40)
+  identification_number                                    String                       @db.VarChar(40)
   first_name                                               String                       @db.VarChar(60)
   last_name                                                String                       @db.VarChar(60)
   username                                                 String                       @unique(map: "username") @db.VarChar(40)
-  email                                                    String                       @unique(map: "uq_users_email") @db.VarChar(120)
-  phone                                                    String?                      @unique(map: "uq_users_phone") @db.VarChar(30)
+  email                                                    String                       @db.VarChar(120)
+  phone                                                    String?                      @db.VarChar(30)
   avatar_url                                               String?                      @db.VarChar(256)
   role_id                                                  String?                      @db.VarChar(36)
   password_hash                                            String                       @db.VarChar(255)

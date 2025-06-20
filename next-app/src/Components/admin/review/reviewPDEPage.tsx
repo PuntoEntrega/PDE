@@ -1,29 +1,42 @@
+// v0 was here
 "use client"
 
 import { useEffect, useState } from "react"
-import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card"
+import { Card, CardContent } from "@/Components/ui/card"
 import { Badge } from "@/Components/ui/badge"
 import { Button } from "@/Components/ui/button"
 import { Input } from "@/Components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/Components/ui/select"
-import { Dialog, DialogContent, DialogTrigger, DialogTitle } from "@/Components/ui/dialog"
-import { MapPin, Search, Filter, CheckCircle, XCircle, Pause, RotateCcw, Mail, MessageCircle } from "lucide-react"
+import { Store, Search, Filter, Mail, MessageCircle, MapPin, Eye } from "lucide-react"
+import { Avatar, AvatarFallback, AvatarImage } from "@/Components/ui/avatar"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/Components/ui/tooltip"
 
 const statuses = ["under_review", "active", "inactive", "rejected"] as const
 
-interface ReviewPDEPageClientProps {
-  adminId: string
+// Función para traducir estados al español
+const getStatusLabel = (status: string) => {
+  const statusLabels = {
+    under_review: "En Revisión",
+    active: "Activo",
+    inactive: "Inactivo",
+    rejected: "Rechazado",
+  }
+  return statusLabels[status as keyof typeof statusLabels] || status
 }
 
-export default function ReviewPDEPageClient({ adminId }: ReviewPDEPageClientProps) {
+interface ReviewPDEPageClientProps {
+  adminId: string
+  onItemSelect: (item: { id: string; type: "pdes"; name: string }) => void
+}
+
+export default function ReviewPDEPageClient({ adminId, onItemSelect }: ReviewPDEPageClientProps) {
   const [statusFilter, setStatusFilter] = useState<string>("under_review")
   const [search, setSearch] = useState("")
   const [pdes, setPDEs] = useState<any[]>([])
-  const [selectedPDE, setSelectedPDE] = useState<any>(null)
-  const [newStatus, setNewStatus] = useState<string>("")
-  const [reason, setReason] = useState<string>("")
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    setLoading(true)
     fetch("/api/pdes/review-list")
       .then(async (r) => {
         const txt = await r.text()
@@ -36,33 +49,8 @@ export default function ReviewPDEPageClient({ adminId }: ReviewPDEPageClientProp
         }
       })
       .catch((e) => console.error("Fetch error:", e))
+      .finally(() => setLoading(false))
   }, [statusFilter])
-
-  const handleOpenChange = (open: boolean) => {
-    if (!open) {
-      setSelectedPDE(null)
-      setNewStatus("")
-      setReason("")
-    }
-  }
-
-  const handleStatusSubmit = async () => {
-    if (!selectedPDE || !newStatus || !reason) return
-
-    const res = await fetch(`/api/pdes/${selectedPDE.id}/change-status`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        newStatus,
-        reason,
-        changed_by_id: adminId,
-      }),
-    })
-
-    if (res.ok) {
-      setPDEs((prev) => prev.map((p) => (p.id === selectedPDE.id ? { ...p, status: newStatus, reason } : p)))
-    }
-  }
 
   const filteredPDEs = pdes.filter(
     (pde) =>
@@ -72,141 +60,204 @@ export default function ReviewPDEPageClient({ adminId }: ReviewPDEPageClientProp
   )
 
   const getStatusBadge = (status: string) => {
-    const variants = {
-      under_review: "bg-yellow-100 text-yellow-800 border-yellow-200",
-      active: "bg-green-100 text-green-800 border-green-200",
-      inactive: "bg-gray-100 text-gray-800 border-gray-200",
-      rejected: "bg-red-100 text-red-800 border-red-200",
+    switch (status) {
+      case "under_review":
+        return (
+          <Badge variant="outline" className="bg-yellow-100 text-yellow-700 border-yellow-300">
+            En Revisión
+          </Badge>
+        )
+      case "active":
+        return (
+          <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
+            Activo
+          </Badge>
+        )
+      case "inactive":
+        return (
+          <Badge variant="outline" className="bg-gray-100 text-gray-700 border-gray-300">
+            Inactivo
+          </Badge>
+        )
+      case "rejected":
+        return (
+          <Badge variant="outline" className="bg-red-100 text-red-700 border-red-300">
+            Rechazado
+          </Badge>
+        )
+      default:
+        return (
+          <Badge variant="outline" className="bg-gray-100 text-gray-700 border-gray-300">
+            Desconocido
+          </Badge>
+        )
     }
-    return variants[status as keyof typeof variants] || variants.under_review
   }
 
-  const getActionButton = (statusOption: string) => {
-    const configs = {
-      active: { icon: CheckCircle, label: "Aprobar", variant: "default" as const },
-      rejected: { icon: XCircle, label: "Rechazar", variant: "destructive" as const },
-      inactive: { icon: Pause, label: "Desactivar", variant: "secondary" as const },
-      under_review: { icon: RotateCcw, label: "Volver a revisión", variant: "outline" as const },
-    }
-    return configs[statusOption as keyof typeof configs]
+  const getStatusCount = (status: string) => {
+    return pdes.filter((pde) => pde.status === status).length
   }
 
   return (
-    <Card className="border-gray-200 shadow-sm">
-      <CardHeader className="bg-gradient-to-r from-purple-50 to-violet-50 p-6 rounded-t-lg border-b">
-        <CardTitle className="text-xl font-semibold text-gray-800 flex items-center">
-          <div className="p-2 bg-purple-100 rounded-lg mr-3">
-            <MapPin className="h-6 w-6 text-purple-600" />
+    <div className="space-y-6">
+      {/* Header con estadísticas */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center">
+          <div className="p-3 bg-purple-100 rounded-lg mr-3 shadow-sm">
+            <Store className="h-6 w-6 text-purple-600" />
           </div>
-          Puntos de Entrega en Revisión
-        </CardTitle>
-        <p className="text-sm text-gray-600 mt-2">Gestiona las solicitudes de PDEs pendientes</p>
-      </CardHeader>
-
-      <CardContent className="p-6">
-        <div className="flex flex-col sm:flex-row items-center gap-4 mb-6">
-          <div className="relative w-full sm:w-1/2">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Buscar por nombre o comercial"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-
-          <div className="relative w-full sm:w-52">
-            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 z-10" />
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="pl-10">
-                <SelectValue placeholder="Estado" />
-              </SelectTrigger>
-              <SelectContent>
-                {statuses.map((s) => (
-                  <SelectItem key={s} value={s}>
-                    {s}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div>
+            <h2 className="text-xl font-semibold text-gray-800">Puntos de Entrega en Revisión</h2>
+            <p className="text-sm text-gray-600 mt-1">Haz clic en "Revisar" para ver los detalles completos</p>
           </div>
         </div>
+        <div className="flex gap-2">
+          {statuses.map((status) => (
+            <TooltipProvider key={status}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="text-center p-2 bg-white rounded-lg border border-gray-200 min-w-[60px] shadow-sm">
+                    <div className="text-lg font-bold text-gray-800">{getStatusCount(status)}</div>
+                    <div className="text-xs text-gray-500">{getStatusLabel(status)}</div>
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>
+                    {getStatusCount(status)} PdE en estado {getStatusLabel(status)}
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          ))}
+        </div>
+      </div>
 
-        <div className="space-y-4">
-          {filteredPDEs.map((pde) => (
-            <Card key={pde.id} className="border border-gray-200 hover:shadow-md transition-shadow">
-              <CardContent className="p-4">
+      {/* Controles de filtrado */}
+      <Card className="shadow-sm border border-gray-200 rounded-xl">
+        <CardContent className="p-4">
+          <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
+            <div className="relative flex-1 max-w-md">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Buscar por nombre del PdE..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-10 bg-white border-gray-200 focus-visible:ring-blue-500"
+              />
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-gray-500" />
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[180px] bg-white border-gray-200">
+                  <SelectValue placeholder="Filtrar por estado" />
+                </SelectTrigger>
+                <SelectContent>
+                  {statuses.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {getStatusLabel(s)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Lista de PdE */}
+      <div className="space-y-4">
+        {loading ? (
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
+            <p className="text-gray-500 mt-2">Cargando puntos de entrega...</p>
+          </div>
+        ) : filteredPDEs.length > 0 ? (
+          filteredPDEs.map((pde) => (
+            <Card key={pde.id} className="border border-gray-200 hover:shadow-md transition-all duration-200">
+              <CardContent className="p-6">
                 <div className="flex justify-between items-start">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900">{pde.name}</h3>
-                    <div className="mt-2 space-y-1">
-                      <p className="text-sm text-gray-600 flex items-center">
-                        <span className="font-medium mr-2">Nombre Comercial:</span> {pde.trade_name || "—"}
-                      </p>
-                      <p className="text-sm text-gray-600 flex items-center">
-                        <Mail className="h-4 w-4 mr-2 text-gray-400" />
-                        {pde.business_email || "—"}
-                      </p>
-                      <p className="text-sm text-gray-600 flex items-center">
-                        <MessageCircle className="h-4 w-4 mr-2 text-gray-400" />
-                        {pde.whatsapp_contact || "—"}
-                      </p>
-                      <p className="text-sm text-gray-600 flex items-center">
-                        <span className="font-medium mr-2">Razón actual:</span> {pde.reason || "—"}
-                      </p>
+                  <div className="flex items-start gap-4 flex-1">
+                    <Avatar className="h-12 w-12 border-2 border-white shadow-sm rounded-lg">
+                      <AvatarImage
+                        src={pde.logo_url || "/placeholder.svg?height=48&width=48&query=store+logo"}
+                        alt={`Logo de ${pde.name}`}
+                        className="object-contain p-1"
+                      />
+                      <AvatarFallback className="bg-purple-100 text-purple-700 rounded-lg">
+                        {pde.name
+                          ?.split(" ")
+                          .map((n) => n[0])
+                          .join("")
+                          .toUpperCase()
+                          .slice(0, 2) || "PD"}
+                      </AvatarFallback>
+                    </Avatar>
+
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">{pde.name}</h3>
+                      <div className="space-y-2">
+                        <div className="flex items-center text-sm text-gray-600">
+                          <Store className="h-4 w-4 mr-2 text-gray-400" />
+                          <span className="font-medium mr-2">Empresa:</span>
+                          <span>{pde.trade_name || "No especificada"}</span>
+                        </div>
+                        <div className="flex items-center text-sm text-gray-600">
+                          <Mail className="h-4 w-4 mr-2 text-gray-400" />
+                          <span className="font-medium mr-2">Email:</span>
+                          <a href={`mailto:${pde.business_email}`} className="text-blue-600 hover:underline">
+                            {pde.business_email || "No especificado"}
+                          </a>
+                        </div>
+                        <div className="flex items-center text-sm text-gray-600">
+                          <MessageCircle className="h-4 w-4 mr-2 text-gray-400" />
+                          <span className="font-medium mr-2">WhatsApp:</span>
+                          <span>{pde.whatsapp_contact || "No especificado"}</span>
+                        </div>
+                        <div className="flex items-center text-sm text-gray-600">
+                          <MapPin className="h-4 w-4 mr-2 text-gray-400" />
+                          <span className="font-medium mr-2">Ubicación:</span>
+                          <span>
+                            {`${pde.province || ""}, ${pde.canton || ""}, ${pde.district || ""}`
+                              .trim()
+                              .replace(/^,|,$/, "") || "No especificada"}
+                          </span>
+                        </div>
+                        <div className="flex items-start text-sm text-gray-600">
+                          <Store className="h-4 w-4 mr-2 text-gray-400 mt-0.5" />
+                          <span className="font-medium mr-2">Razón actual:</span>
+                          <span>{pde.reason || "Sin especificar"}</span>
+                        </div>
+                      </div>
+                      <div className="mt-3">{getStatusBadge(pde.status)}</div>
                     </div>
-                    <Badge className={`mt-3 ${getStatusBadge(pde.status)}`}>{pde.status}</Badge>
                   </div>
 
-                  <div className="flex flex-col gap-2 ml-4">
-                    {["active", "rejected", "inactive", "under_review"].map((statusOption) => {
-                      const config = getActionButton(statusOption)
-                      const Icon = config.icon
-
-                      return (
-                        <Dialog key={statusOption} onOpenChange={handleOpenChange}>
-                          <DialogTrigger asChild>
-                            <Button
-                              variant={config.variant}
-                              size="sm"
-                              className="justify-start"
-                              onClick={() => {
-                                setSelectedPDE(pde)
-                                setNewStatus(statusOption)
-                              }}
-                            >
-                              <Icon className="h-4 w-4 mr-2" />
-                              {config.label}
-                            </Button>
-                          </DialogTrigger>
-                          <DialogContent className="space-y-4 bg-white">
-                            <DialogTitle>Motivo del cambio</DialogTitle>
-                            <p className="text-sm text-gray-600">
-                              Indica el motivo para cambiar el estado a <strong>{newStatus}</strong>.
-                            </p>
-                            <Input
-                              placeholder="Motivo del cambio"
-                              value={reason}
-                              onChange={(e) => setReason(e.target.value)}
-                            />
-                            <Button onClick={handleStatusSubmit} className="w-full">
-                              Confirmar cambio
-                            </Button>
-                          </DialogContent>
-                        </Dialog>
-                      )
-                    })}
+                  <div className="ml-4">
+                    <Button
+                      onClick={() => onItemSelect({ id: pde.id, type: "pdes", name: pde.name })}
+                      className="bg-purple-600 hover:bg-purple-700 text-white"
+                    >
+                      <Eye className="h-4 w-4 mr-2" />
+                      Revisar
+                    </Button>
                   </div>
                 </div>
               </CardContent>
             </Card>
-          ))}
-
-          {filteredPDEs.length === 0 && (
-            <div className="text-center py-8 text-gray-500">No se encontraron PDEs con el filtro aplicado</div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+          ))
+        ) : (
+          <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
+            <Store className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <h3 className="text-lg font-semibold text-gray-700 mb-2">No se encontraron puntos de entrega</h3>
+            <p className="text-gray-500">
+              {search || statusFilter !== "under_review"
+                ? "No hay PdE que coincidan con los filtros aplicados."
+                : "No hay puntos de entrega pendientes de revisión en este momento."}
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
   )
 }

@@ -1,3 +1,4 @@
+// src/app/Components/Companies/company-details.tsx
 "use client"
 
 import type React from "react"
@@ -135,8 +136,6 @@ export function CompanyDetails({ companyId }: CompanyDetailsProps) {
     const [loading, setLoading] = useState(true)
     const [isEditing, setIsEditing] = useState(false)
     const { toast } = useToast()
-
-
 
 
     useEffect(() => {

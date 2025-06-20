@@ -9,6 +9,7 @@ import { Badge } from "@/Components/ui/badge"
 import { Button } from "@/Components/ui/button"
 import { Building2, ChevronDown, Check } from "lucide-react"
 
+/* ---------- tipos ---------- */
 type Company = {
   id: string
   trade_name: string
@@ -19,33 +20,38 @@ type Company = {
 
 type HookFormProps = { control: any; name: string }
 type StandaloneProps = { value: string | null; onChange: (id: string) => void }
+type Props = (HookFormProps | StandaloneProps) & {
+  companies?: Company[]
+}
 
-type Props = HookFormProps | StandaloneProps
-
+/* ---------- componente ---------- */
 export default function CompanyVisualSelector(props: Props) {
   const viaHookForm = "control" in props
   const field = viaHookForm
     ? { value: props.value, onChange: props.onChange }
     : { value: props.value, onChange: props.onChange }
 
-  const [companies, setCompanies] = useState<Company[]>([])
+  const [companies, setCompanies] = useState<Company[]>(props.companies || [])
   const [open, setOpen] = useState(false)
 
+  /* fallback a mock si no pasan companies */
   useEffect(() => {
-    const mockCompanies: Company[] = [
-      {
-        id: "1",
-        trade_name: "Esto es un mock, devuelve el cambio si está mal",
-        logo_url: "/placeholder.svg?height=40&width=40",
-        company_type: "Sin data",
-        active: true,
-      }
-    ]
-    setCompanies(mockCompanies)
-  }, [])
+    if (!props.companies) {
+      setCompanies([
+        {
+          id: "1",
+          trade_name: "Mock Company",
+          logo_url: "/placeholder.svg?height=40&width=40",
+          company_type: "Mock",
+          active: true,
+        },
+      ])
+    }
+  }, [props.companies])
 
   const selected = companies.find((c) => c.id === field.value)
 
+  /* ---------- return (markup original) ---------- */
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -58,7 +64,10 @@ export default function CompanyVisualSelector(props: Props) {
             {selected ? (
               <>
                 <Avatar className="w-6 h-6">
-                  <AvatarImage src={selected.logo_url ?? ""} alt={selected.trade_name} />
+                  <AvatarImage
+                    src={selected.logo_url ?? ""}
+                    alt={selected.trade_name}
+                  />
                 </Avatar>
                 <span className="text-sm">{selected.trade_name}</span>
               </>
@@ -72,7 +81,9 @@ export default function CompanyVisualSelector(props: Props) {
 
       <PopoverContent className="w-[400px] p-2 border-gray-200 shadow-lg">
         <div className="mb-2">
-          <h4 className="text-sm font-medium text-gray-700 px-2 py-1">Selecciona una empresa</h4>
+          <h4 className="text-sm font-medium text-gray-700 px-2 py-1">
+            Selecciona una empresa
+          </h4>
         </div>
         <ScrollArea className="h-[250px]">
           <div className="space-y-1">
@@ -94,14 +105,23 @@ export default function CompanyVisualSelector(props: Props) {
                     <AvatarImage src={c.logo_url ?? ""} alt={c.trade_name} />
                   </Avatar>
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-gray-900 truncate">{c.trade_name}</div>
-                    <div className="text-xs text-gray-500">Tipo: {c.company_type}</div>
+                    <div className="font-medium text-gray-900 truncate">
+                      {c.trade_name}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      Tipo: {c.company_type}
+                    </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge variant={c.active ? "default" : "destructive"} className="text-xs">
+                    <Badge
+                      variant={c.active ? "default" : "destructive"}
+                      className="text-xs"
+                    >
                       {c.active ? "Activa" : "Inactiva"}
                     </Badge>
-                    {field.value === c.id && <Check className="h-4 w-4 text-blue-600" />}
+                    {field.value === c.id && (
+                      <Check className="h-4 w-4 text-blue-600" />
+                    )}
                   </div>
                 </CardContent>
               </Card>
