@@ -138,8 +138,6 @@ export function CompanyDetails({ companyId }: CompanyDetailsProps) {
     const { toast } = useToast()
 
 
-
-
     useEffect(() => {
         async function load() {
             setLoading(true)
