@@ -9,6 +9,7 @@ import { Badge } from "@/Components/ui/badge"
 import { Button } from "@/Components/ui/button"
 import { Building2, ChevronDown, Check } from "lucide-react"
 
+
 /* ---------- tipos ---------- */
 type Company = {
   id: string

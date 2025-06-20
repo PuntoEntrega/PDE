@@ -30,7 +30,7 @@ import { cookies } from 'next/headers'
 import jwt from 'jsonwebtoken'
 
 interface SessionPayload {
-  sub: string
+sub: string
   role: string
   document_type_id: string
   identification_number: string
