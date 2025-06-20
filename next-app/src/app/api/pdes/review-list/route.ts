@@ -23,7 +23,6 @@ export async function GET() {
 
                 // Si quieres mostrar a futuro datos adicionales como:
                 // company_id: true,
-                // global_company_context_id: true,
             },
             orderBy: {
                 created_at: "desc",

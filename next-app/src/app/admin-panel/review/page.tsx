@@ -1,9 +1,7 @@
 // v0 was here
 import { getSession } from "@/lib/auth"
 import { Sidebar } from "@/Components/Sidebar/Sidebar"
-import ReviewUsersClient from "@/Components/admin/review/reviewUsersPage"
-import ReviewPDEPageClient from "@/Components/admin/review/reviewPDEPage"
-import ReviewCompaniesClient from "@/Components/admin/review/reviewCompanyPage"
+import ReviewPanelClient from "@/Components/admin/review/reviewPanelClient"
 import { Card, CardHeader, CardTitle } from "@/Components/ui/card"
 import { ClipboardCheck } from "lucide-react"
 
@@ -32,12 +30,8 @@ export default async function ReviewPanelPage() {
           </CardHeader>
         </Card>
 
-        {/* Componentes de revisión */}
-        <div className="space-y-8">
-          <ReviewUsersClient adminId={adminId} />
-          <ReviewCompaniesClient adminId={adminId} />
-          <ReviewPDEPageClient adminId={adminId} />
-        </div>
+        {/* Panel de revisión con navegación */}
+        <ReviewPanelClient adminId={adminId} />
       </div>
     </Sidebar>
   )

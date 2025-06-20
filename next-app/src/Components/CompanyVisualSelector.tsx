@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { getAssignableCompanies } from "@/Services/companies"
 import { Popover, PopoverTrigger, PopoverContent } from "@/Components/ui/popover"
 import { Card, CardContent } from "@/Components/ui/card"
 import { Avatar, AvatarImage } from "@/Components/ui/avatar"
@@ -9,7 +10,6 @@ import { Badge } from "@/Components/ui/badge"
 import { Button } from "@/Components/ui/button"
 import { Building2, ChevronDown, Check } from "lucide-react"
 
-/* ---------- tipos ---------- */
 type Company = {
   id: string
   trade_name: string
@@ -18,40 +18,26 @@ type Company = {
   active: boolean
 }
 
-type HookFormProps = { control: any; name: string }
-type StandaloneProps = { value: string | null; onChange: (id: string) => void }
-type Props = (HookFormProps | StandaloneProps) & {
-  companies?: Company[]
+type Props = {
+  value: string | null
+  onChange: (id: string) => void
 }
 
-/* ---------- componente ---------- */
-export default function CompanyVisualSelector(props: Props) {
-  const viaHookForm = "control" in props
-  const field = viaHookForm
-    ? { value: props.value, onChange: props.onChange }
-    : { value: props.value, onChange: props.onChange }
-
-  const [companies, setCompanies] = useState<Company[]>(props.companies || [])
+export default function CompanyVisualSelector({ value, onChange }: Props) {
+  const [companies, setCompanies] = useState<Company[]>([])
   const [open, setOpen] = useState(false)
 
-  /* fallback a mock si no pasan companies */
   useEffect(() => {
-    if (!props.companies) {
-      setCompanies([
-        {
-          id: "1",
-          trade_name: "Mock Company",
-          logo_url: "/placeholder.svg?height=40&width=40",
-          company_type: "Mock",
-          active: true,
-        },
-      ])
-    }
-  }, [props.companies])
+    getAssignableCompanies()
+      .then(setCompanies)
+      .catch((err) => {
+        console.error("Error al cargar empresas:", err)
+        setCompanies([])
+      })
+  }, [])
 
-  const selected = companies.find((c) => c.id === field.value)
+  const selected = companies.find((c) => c.id === value)
 
-  /* ---------- return (markup original) ---------- */
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -64,10 +50,7 @@ export default function CompanyVisualSelector(props: Props) {
             {selected ? (
               <>
                 <Avatar className="w-6 h-6">
-                  <AvatarImage
-                    src={selected.logo_url ?? ""}
-                    alt={selected.trade_name}
-                  />
+                  <AvatarImage src={selected.logo_url ?? ""} alt={selected.trade_name} />
                 </Avatar>
                 <span className="text-sm">{selected.trade_name}</span>
               </>
@@ -91,12 +74,12 @@ export default function CompanyVisualSelector(props: Props) {
               <Card
                 key={c.id}
                 className={`cursor-pointer transition-all duration-200 border ${
-                  field.value === c.id
+                  value === c.id
                     ? "border-blue-500 bg-blue-50"
                     : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
                 }`}
                 onClick={() => {
-                  field.onChange(c.id)
+                  onChange(c.id)
                   setOpen(false)
                 }}
               >
@@ -119,7 +102,7 @@ export default function CompanyVisualSelector(props: Props) {
                     >
                       {c.active ? "Activa" : "Inactiva"}
                     </Badge>
-                    {field.value === c.id && (
+                    {value === c.id && (
                       <Check className="h-4 w-4 text-blue-600" />
                     )}
                   </div>
