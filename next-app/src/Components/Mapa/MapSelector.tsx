@@ -1,91 +1,136 @@
 "use client"
 
-import { MapContainer, TileLayer, Marker } from "react-leaflet"
-import { useState, useEffect, forwardRef, useImperativeHandle } from "react"
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  useMapEvent,
+} from "react-leaflet"
 import L from "leaflet"
+import {
+  forwardRef,
+  useImperativeHandle,
+  useEffect,
+  useRef,
+  useState,
+} from "react"
 import LeafletGeocoder from "./LeafletGeocoder"
-import './index.css'
+import { reverseGeocode } from "@/lib/map/reverseGeocode"
+import "leaflet/dist/leaflet.css"
+import "./index.css"
 
-// Corrige los iconos de Leaflet
+/* ------------------ fix iconos ------------------ */
 delete (L.Icon.Default.prototype as any)._getIconUrl
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png",
-  iconUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.7.1/dist/images/marker-shadow.png",
+  iconRetinaUrl:
+    "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
 })
 
+/* ------------------- tipos ---------------------- */
 export type MapSelectorRef = {
-  locateUser: () => void
+  locateUser: () => Promise<[number, number] | null>
+  panTo: (coords: [number, number], zoom?: number) => void
 }
 
 type MapSelectorProps = {
-  onLocationSelect: (lat: number, lng: number) => void
-  initialLat?: number
-  initialLng?: number
+  onLocationSelect?: (json: any) => void
+  initialCenter?: [number, number]
+  initialZoom?: number
+}
+
+/* Handler para clicks en el mapa */
+function MapClickHandler({ onClick }: { onClick: (lat: number, lng: number) => void }) {
+  useMapEvent("click", (e) => onClick(e.latlng.lat, e.latlng.lng))
+  return null
 }
 
 const MapSelector = forwardRef<MapSelectorRef, MapSelectorProps>(
-  ({ onLocationSelect, initialLat = 9.934739, initialLng = -84.087502 }, ref) => {
-    const [position, setPosition] = useState<[number, number]>([initialLat, initialLng])
+  (
+    {
+      onLocationSelect,
+      initialCenter = [9.7489, -83.7534], // centro CR
+      initialZoom = 14,
+    },
+    ref,
+  ) => {
+    const [position, setPosition] = useState<[number, number] | null>(null)
+    const mapRef = useRef<L.Map | null>(null)
 
-    // Exponemos el método locateUser() al padre
+    /* -------- función única para mover marker + centrar + notificar -------- */
+    const moveMarker = async (lat: number, lng: number, zoom = 17) => {
+      setPosition([lat, lng])
+      mapRef.current?.setView([lat, lng], zoom)      // 👈 centra SIEMPRE
+      if (onLocationSelect) {
+        const json = await reverseGeocode(lat, lng)
+        onLocationSelect(json)
+      }
+    }
+
+    const locateUser = (): Promise<[number, number] | null> =>
+      new Promise((resolve) => {
+        if (!navigator.geolocation) return resolve(null)
+
+        navigator.geolocation.getCurrentPosition(
+          async ({ coords }) => {
+            const pos: [number, number] = [coords.latitude, coords.longitude]
+            await moveMarker(...pos)
+            resolve(pos)
+          },
+          () => resolve(null),
+          { enableHighAccuracy: true },
+        )
+      })
+
+
+    /* Exponer API al padre */
     useImperativeHandle(ref, () => ({
-      locateUser: () => {
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(
-            ({ coords }) => {
-              const { latitude, longitude } = coords
-              setPosition([latitude, longitude])
-              onLocationSelect(latitude, longitude)
-            },
-            (err) => {
-              alert("No se pudo obtener tu ubicación: " + err.message)
-            },
-            { enableHighAccuracy: true },
-          )
-        } else {
-          alert("Tu navegador no soporta geolocalización.")
-        }
-      },
+      locateUser,
+      panTo: (coords, z = 17) => mapRef.current?.setView(coords, z),
     }))
 
-    // Autolocaliza al cargar el mapa (solo una vez)
+    /* Autolocalizar al montar */
     useEffect(() => {
-      if (!navigator.geolocation) return
       navigator.geolocation.getCurrentPosition(
-        ({ coords }) => {
-          const { latitude, longitude } = coords
-          setPosition([latitude, longitude])
-          onLocationSelect(latitude, longitude)
-        },
-        (err) => {
-          // No bloquea el render si no hay ubicación
-          console.warn("Ubicación no disponible:", err.message)
-        },
-        { enableHighAccuracy: true }
+        ({ coords }) => moveMarker(coords.latitude, coords.longitude, initialZoom),
+        () => moveMarker(initialCenter[0], initialCenter[1], initialZoom),
       )
-    }, []) // Solo al montar
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [])
+
+    if (!position) {
+      return <div className="h-[400px] bg-muted/30 animate-pulse rounded-lg w-full" />
+    }
 
     return (
       <MapContainer
         center={position}
-        zoom={13}
-        style={{ height: "100%", width: "100%" }}
+        zoom={initialZoom}
         scrollWheelZoom
+        className="h-full w-full"
+        whenCreated={(m) => (mapRef.current = m)}
       >
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-        <Marker position={position} />
-        {/* LeafletGeocoder notifica si se hace una búsqueda */}
-        <LeafletGeocoder
-          onGeocode={(lat, lng) => {
-            setPosition([lat, lng])
-            onLocationSelect(lat, lng)
+
+        <Marker
+          position={position}
+          draggable
+          eventHandlers={{
+            dragend: (e) => {
+              const { lat, lng } = (e.target as L.Marker).getLatLng()
+              moveMarker(lat, lng)
+            },
           }}
         />
-        {/* Puedes agregar más controles hijos aquí si necesitas */}
+
+        <MapClickHandler onClick={(lat, lng) => moveMarker(lat, lng)} />
+
+        <LeafletGeocoder onGeocode={(lat, lng) => moveMarker(lat, lng)} />
       </MapContainer>
     )
-  }
+  },
 )
 
+MapSelector.displayName = "MapSelector"
 export default MapSelector

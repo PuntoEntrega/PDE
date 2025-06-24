@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     const valid = await compare(password, user.password_hash);
     if (!valid) {
       return NextResponse.json({ error: "Credenciales inválidas" }, { status: 401 });
-    }
+    } 
 
     // 3. Genera el JWT
     const JWT_SECRET = process.env.JWT_SECRET;

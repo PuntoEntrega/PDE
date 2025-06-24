@@ -80,9 +80,7 @@ export default function PdeGeneralDataForm({
   )
 
   // Ubicación
-  const [province, setProvince] = useState(initialData?.province || "")
-  const [canton, setCanton] = useState(initialData?.canton || "")
-  const [district, setDistrict] = useState(initialData?.district || "")
+  const [locationJson, setLocationJson] = useState<any>(initialData?.location_json || null);
   const [exactAddress, setExactAddress] = useState(
     initialData?.exact_address || ""
   )
@@ -134,9 +132,6 @@ export default function PdeGeneralDataForm({
     setTelefono(initialData.whatsapp_contact || "")
     setEmail(initialData.business_email || "")
     setCompanyId(initialData.company_id ?? null)
-    setProvince(initialData.province || "")
-    setCanton(initialData.canton || "")
-    setDistrict(initialData.district || "")
     setExactAddress(initialData.exact_address || "")
     setPostalCode(initialData.postal_code || "")
     if (
@@ -159,20 +154,18 @@ export default function PdeGeneralDataForm({
     }
   }, [initialData])
 
-    // Efecto para notificar cambios al padre (YA NO depende de onChange)
+  // Efecto para notificar cambios al padre (YA NO depende de onChange)
   useEffect(() => {
     onChange({
       company_id: companyId,
       name,
       whatsapp_contact: telefono,
       business_email: email,
-      province,
-      canton,
-      district,
       exact_address: exactAddress,
       postal_code: postalCode,
       latitude: geo?.[0],
       longitude: geo?.[1],
+      location_json: locationJson,
       schedule_json: schedule,
       services_json: { ...paymentMethods, ...additionalServices },
     })
@@ -182,9 +175,6 @@ export default function PdeGeneralDataForm({
     name,
     telefono,
     email,
-    province,
-    canton,
-    district,
     exactAddress,
     postalCode,
     geo,
@@ -333,63 +323,6 @@ export default function PdeGeneralDataForm({
           </div>
         </CardHeader>
         <CardContent className="p-6 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="space-y-2">
-              <Label htmlFor="province">Provincia</Label>
-              <Select
-                value={province}
-                onValueChange={setProvince}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccione una" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="san_jose">San José</SelectItem>
-                  <SelectItem value="alajuela">Alajuela</SelectItem>
-                  <SelectItem value="cartago">Cartago</SelectItem>
-                  <SelectItem value="heredia">Heredia</SelectItem>
-                  <SelectItem value="guanacaste">Guanacaste</SelectItem>
-                  <SelectItem value="puntarenas">Puntarenas</SelectItem>
-                  <SelectItem value="limon">Limón</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="canton">Cantón</Label>
-              <Select
-                value={canton}
-                onValueChange={setCanton}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccione una" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="central">Central</SelectItem>
-                  <SelectItem value="escazu">Escazú</SelectItem>
-                  <SelectItem value="desamparados">Desamparados</SelectItem>
-                  <SelectItem value="puriscal">Puriscal</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="district">Distrito</Label>
-              <Select
-                value={district}
-                onValueChange={setDistrict}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccione una" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="carmen">Carmen</SelectItem>
-                  <SelectItem value="merced">Merced</SelectItem>
-                  <SelectItem value="hospital">Hospital</SelectItem>
-                  <SelectItem value="catedral">Catedral</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
           <div className="space-y-2">
             <Label htmlFor="exactAddress">Dirección exacta</Label>
             <Textarea
@@ -431,9 +364,17 @@ export default function PdeGeneralDataForm({
               <LocateFixed className="w-4 h-4 text-blue-600" />
               Ubicarme
             </button>
+            {locationJson?.display_name && (
+              <div className="text-sm text-gray-700 bg-gray-50 border rounded-md px-4 py-2">
+                Ubicación detectada: <strong>{locationJson.display_name}</strong>
+              </div>
+            )}
             <MapSelector
               ref={mapRef}
-              onLocationSelect={(lat, lng) => setGeo([lat, lng])}
+              onLocationSelect={(locationData) => {
+                setGeo([locationData.lat, locationData.lon]);
+                setLocationJson(locationData);
+              }}
             />
           </div>
         </CardContent>
