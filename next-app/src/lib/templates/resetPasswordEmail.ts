@@ -4,7 +4,7 @@ export function getResetPasswordEmailHTML({ username, resetUrl }: { username: st
   return `
     <div style="font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 20px;">
       <div style="max-width: 480px; margin: auto; background-color: #ffffff; border-radius: 10px; padding: 30px; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-        <img src="https://pde-content-img.s3.us-east-1.amazonaws.com/branding/logo_punto_entrega_blue.png" alt="Punto Entrega" width="100" style="margin-bottom: 20px;" />
+        <img src="https://pde-content-img.s3.us-east-1.amazonaws.com/material-grafico/punto_entrega_logo.png" alt="Punto Entrega" width="100" style="margin-bottom: 20px;" />
 
         <p style="font-size: 16px; color: #333;">Se ha solicitado la recuperación de contraseña de tu usuario <strong>${username}</strong>.</p>
 

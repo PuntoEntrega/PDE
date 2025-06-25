@@ -61,8 +61,8 @@ export function Sidebar({ children }: { children: React.ReactNode }) {
     // sección Principal
     { label: "Inicio", icon: Home, path: "/dashboard", section: "main" },
     { label: "Empresas", icon: Building, path: "/companies", section: "main" },
-    { label: "Historial", icon: Clock, path: "/history", section: "main" },
-    { label: "Clientes", icon: User, path: "/clients", section: "main" },
+    { label: "Colaboradores", icon: User, path: "/collaborators", section: "main" },
+    { label: "Clientes", icon: Clock, path: "/clients", section: "main" },
     // sección Administración
     { label: "Estadísticas", icon: BarChart2, path: "/stats", section: "admin" },
     { label: "Puntos de Entrega", icon: Store, path: "/pde", section: "admin" },
