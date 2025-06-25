@@ -121,8 +121,9 @@ model DeliveryPoints {
   district                                          String?                      @db.VarChar(60)
   exact_address                                     String?                      @db.VarChar(256)
   postal_code                                       String?                      @db.VarChar(12)
-  latitude                                          Float?                       @db.Float
-  longitude                                         Float?                       @db.Float
+  latitude                                          Decimal?                     @db.Decimal(10, 8)
+  longitude                                         Decimal?                     @db.Decimal(11, 8)
+  location_json                                     Json?
   map_snapshot_url                                  String?                      @db.VarChar(256)
   schedule_json                                     Json?
   services_json                                     Json?
@@ -146,7 +147,7 @@ model DeliveryPoints {
   Guides_Guides_delivery_point_idToDeliveryPoints   Guides[]                     @relation("Guides_delivery_point_idToDeliveryPoints")
   UserPde                                           UserPde[]
 
-  @@index([company_id], map: "company_id")
+  @@index([company_id, status], map: "company_status")
 }
 
 model DocumentTypes {
@@ -227,37 +228,30 @@ model LegalRepresentatives {
 }
 
 model Packages {
-  id                   String                   @id @db.VarChar(36)
-  package_number       String                   @db.VarChar(40)
-  sender_id            String?                  @db.VarChar(36)
-  carrier              String?                  @db.VarChar(36)
-  recipient_name       String?                  @db.VarChar(100)
-  recipient_id         String?                  @db.VarChar(40)
-  recipient_phone      String?                  @db.VarChar(30)
-  size                 Packages_size?
-  weight               Decimal?                 @db.Decimal(10, 2)
-  charge_amount        Decimal?                 @db.Decimal(10, 2)
-  payment_method       Packages_payment_method?
-  security_code        String?                  @db.VarChar(20)
-  requires_id_photo    Boolean?                 @default(false)
-  requires_signature   Boolean?                 @default(false)
-  requires_document    Boolean?                 @default(false)
-  contactless_delivery Boolean?                 @default(false)
-  additional_info      String?                  @db.Text
-  status               Packages_status?
-  received_at          DateTime?                @db.DateTime(0)
-  delivered_at         DateTime?                @db.DateTime(0)
-  id_photo_url         String?                  @db.VarChar(256)
-  signature_url        String?                  @db.VarChar(256)
-  payment_receipt_url  String?                  @db.VarChar(256)
-  created_at           DateTime?                @default(now()) @db.DateTime(0)
-  updated_at           DateTime?                @default(now()) @db.DateTime(0)
-  DeliveryHistory      DeliveryHistory[]
-  GuidePackages        GuidePackages[]
-  Incidents            Incidents[]
-  Senders              Senders?                 @relation(fields: [sender_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Packages_ibfk_1")
+  id              String                   @id @db.VarChar(36)
+  PDE_Id          String                   @db.VarChar(45)
+  package_number  Json
+  courier_id      String?                  @db.VarChar(36)
+  recipient_name  String?                  @db.VarChar(100)
+  recipient_phone String?                  @db.VarChar(30)
+  recipien_email  String?                  @db.VarChar(45)
+  size            Packages_size?
+  weight          Decimal?                 @db.Decimal(10, 2)
+  charge_amount   Decimal?                 @db.Decimal(10, 2)
+  payment_method  Packages_payment_method?
+  security_code   String?                  @db.VarChar(20)
+  additional_info String?                  @db.Text
+  status          Packages_status?
+  received_at     DateTime?                @db.DateTime(0)
+  delivered_at    DateTime?                @db.DateTime(0)
+  created_at      DateTime?                @default(now()) @db.DateTime(0)
+  updated_at      DateTime?                @default(now()) @db.DateTime(0)
+  Merchant        String?                  @db.VarChar(45)
+  DeliveryHistory DeliveryHistory[]
+  GuidePackages   GuidePackages[]
+  Incidents       Incidents[]
 
-  @@index([sender_id], map: "sender_id")
+  @@index([courier_id], map: "Packages_ibfk_1")
 }
 
 model Roles {
@@ -270,12 +264,11 @@ model Roles {
 }
 
 model Senders {
-  id         String     @id @db.VarChar(36)
-  name       String     @db.VarChar(100)
-  active     Boolean?   @default(true)
-  created_at DateTime?  @default(now()) @db.DateTime(0)
-  updated_at DateTime?  @default(now()) @db.DateTime(0)
-  Packages   Packages[]
+  id         String    @id @db.VarChar(36)
+  name       String    @db.VarChar(100)
+  active     Boolean?  @default(true)
+  created_at DateTime? @default(now()) @db.DateTime(0)
+  updated_at DateTime? @default(now()) @db.DateTime(0)
 }
 
 model Users {
@@ -386,6 +379,7 @@ model UserPde {
   user_id           String         @db.VarChar(36)
   delivery_point_id String         @db.VarChar(36)
   created_at        DateTime?      @default(now()) @db.DateTime(0)
+  active            Boolean?       @default(true)
   DeliveryPoints    DeliveryPoints @relation(fields: [delivery_point_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_userpde_delivery_point")
   Users             Users          @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_userpde_user")
 
