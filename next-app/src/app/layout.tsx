@@ -7,7 +7,7 @@ import { jwtDecode } from "jwt-decode"
 import { UserContext, User } from "@/context/UserContext"
 import { CompanyProvider } from "@/context/CompanyContext"
 
-const PUBLIC_ROUTES = ["/login", "/register", "/forgot-password", "/reset-password"]
+const PUBLIC_ROUTES = ["/login", "/register", "/forgot-password", "/reset-password", "/complete-registration",]
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
