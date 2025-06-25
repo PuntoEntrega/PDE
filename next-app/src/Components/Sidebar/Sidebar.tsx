@@ -65,7 +65,7 @@ export function Sidebar({ children }: { children: React.ReactNode }) {
     { label: "Clientes", icon: Clock, path: "/clients", section: "main" },
     // sección Administración
     { label: "Estadísticas", icon: BarChart2, path: "/stats", section: "admin" },
-    { label: "Puntos de Entrega", icon: Store, path: "/points", section: "admin" },
+    { label: "Puntos de Entrega", icon: Store, path: "/pde", section: "admin" },
     { label: "Configuración", icon: Settings, path: "/settings", section: "admin" },
     { label: "Ayuda", icon: HelpCircle, path: "/help", section: "admin" },
   ];

@@ -2,11 +2,9 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { Roles } from "@/lib/envRoles";
 
-
 export async function GET() {
   try {
-    console.log("→ review-list: solo SuperAdminEmpresa");
-
+    /* ── 1. Obtener usuarios ──────────────────────────────────────────── */
     const users = await prisma.users.findMany({
       where: { role_id: Roles.SUPER_ADMIN_EMPRESA },
       include: {
@@ -19,6 +17,7 @@ export async function GET() {
       orderBy: { first_name: "asc" },
     });
 
+    /* ── 2. Formatear respuesta ───────────────────────────────────────── */
     const result = users.map((u) => {
       const latest = u.UserStatusHistory_UserStatusHistory_user_idToUsers?.[0];
       return {
@@ -31,12 +30,18 @@ export async function GET() {
       };
     });
 
+    /* ── 3. Siempre devuelve JSON (lista vacía o con datos) ───────────── */
     return NextResponse.json(result);
   } catch (err) {
-    console.error("❌ review-list error:", err);
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Error interno" },
-      { status: 500 }
-    );
+    /* ── 4. Mostrar detalle solo en desarrollo ────────────────────────── */
+    if (process.env.NODE_ENV !== "production") {
+      return NextResponse.json(
+        { error: "Error interno", details: String(err) },
+        { status: 500 }
+      );
+    }
+
+    /* ── 5. En producción, respuesta genérica ─────────────────────────── */
+    return NextResponse.json({ error: "Error interno" }, { status: 500 });
   }
 }

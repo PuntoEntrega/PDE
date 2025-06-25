@@ -142,7 +142,11 @@ model DeliveryPoints {
   DeliveryHistory                                   DeliveryHistory[]
   DeliveryPointBankAccounts                         DeliveryPointBankAccounts[]
   DeliveryPointStatusHistory                        DeliveryPointStatusHistory[]
+<<<<<<< createCompaniesLogic
   Companies                                         Companies?                   @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "DeliveryPoints_ibfk_1")
+=======
+  company                                           Companies?                   @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "DeliveryPoints_ibfk_1")
+>>>>>>> dev
   Guides_Guides_collection_point_idToDeliveryPoints Guides[]                     @relation("Guides_collection_point_idToDeliveryPoints")
   Guides_Guides_delivery_point_idToDeliveryPoints   Guides[]                     @relation("Guides_delivery_point_idToDeliveryPoints")
   UserPde                                           UserPde[]
@@ -454,23 +458,35 @@ enum Users_status {
   rejected
 }
 
+<<<<<<< createCompaniesLogic
 enum DeliveryPointStatusHistory_previous_status {
-  draft
-  under_review
-  active
-  inactive
-  rejected
-}
-
-enum DeliveryPointStatusHistory_new_status {
-  draft
-  under_review
-  active
-  inactive
-  rejected
-}
-
+=======
 enum DeliveryPoints_status {
+>>>>>>> dev
+  draft
+  under_review
+  active
+  inactive
+  rejected
+}
+
+<<<<<<< createCompaniesLogic
+enum DeliveryPointStatusHistory_new_status {
+=======
+enum DeliveryPointStatusHistory_previous_status {
+>>>>>>> dev
+  draft
+  under_review
+  active
+  inactive
+  rejected
+}
+
+<<<<<<< createCompaniesLogic
+enum DeliveryPoints_status {
+=======
+enum DeliveryPointStatusHistory_new_status {
+>>>>>>> dev
   draft
   under_review
   active

@@ -1,3 +1,5 @@
+// src/app/Components/Companies/company-card.tsx
+
 import Link from "next/link"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/Components/ui/card"
 import { Badge } from "@/Components/ui/badge"
@@ -153,3 +155,47 @@ export function CompanyCard({ company }: CompanyCardProps) {
         </Card>
     )
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

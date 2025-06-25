@@ -1,0 +1,18 @@
+/*  altura, bordes y sombras coherentes con tu UI  */
+.leaflet-control-geocoder {
+  border-radius: 0.5rem;          /* rounded-lg */
+  box-shadow: 0 2px 6px rgb(0 0 0 / .15);
+  overflow: hidden;
+  font-size: 0.875rem;            /* text-sm */
+}
+.leaflet-control-geocoder-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+.leaflet-control-geocoder-form input {
+  padding: 0.5rem 0.75rem;        /* px-3 py-2 */
+}
+.leaflet-control-geocoder-alternatives {
+  max-height: 260px;              /* scroll si se pasa */
+  overflow-y: auto;
+}

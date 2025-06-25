@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
     const valid = await compare(password, user.password_hash);
     if (!valid) {
       return NextResponse.json({ error: "Credenciales inválidas" }, { status: 401 });
-    }
+    } 
 
     console.log(valid);
     

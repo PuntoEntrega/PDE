@@ -28,7 +28,6 @@ import {
   LocateFixed,
 } from "lucide-react"
 import { cn } from "../../../../lib/utils"
-import { useUser } from "@/context/UserContext"
 import CompanyVisualSelector from "@/Components/CompanyVisualSelector"
 import MapSelector from "@/Components/Mapa/MapSelector.client"
 import type { MapSelectorRef } from "@/Components/Mapa/MapSelector"
@@ -58,90 +57,133 @@ export interface DeliveryPointGeneralData {
     accessibility: boolean
   }
 }
+type CompanyMini = { id: string; trade_name: string; logo_url: string | null; company_type: string; active: boolean }
 
 interface PdeGeneralDataFormProps {
+  initialData?: Partial<DeliveryPointGeneralData>
   onChange: (data: Partial<DeliveryPointGeneralData>) => void
+  companies: CompanyMini[]            /* ← llega del padre */
+
 }
 
 export default function PdeGeneralDataForm({
+  initialData,
   onChange,
+  companies, // 👈 faltaba esto
 }: PdeGeneralDataFormProps) {
   // Datos básicos
-  const [name, setName] = useState("")
-  const [telefono, setTelefono] = useState("")
-  const [email, setEmail] = useState("")
-  const [companyId, setCompanyId] = useState<string | null>(null)
+  const [name, setName] = useState(initialData?.name || "")
+  const [telefono, setTelefono] = useState(initialData?.whatsapp_contact || "")
+  const [email, setEmail] = useState(initialData?.business_email || "")
+  const [companyId, setCompanyId] = useState<string | null>(
+    initialData?.company_id ?? null
+  )
 
   // Ubicación
-  const [province, setProvince] = useState("")
-  const [canton, setCanton] = useState("")
-  const [district, setDistrict] = useState("")
-  const [exactAddress, setExactAddress] = useState("")
-  const [postalCode, setPostalCode] = useState("")
-  const [geo, setGeo] = useState<[number, number] | null>(null)
+  const [locationJson, setLocationJson] = useState<any>(initialData?.location_json || null);
+  const [exactAddress, setExactAddress] = useState(
+    initialData?.exact_address || ""
+  )
+  const [postalCode, setPostalCode] = useState(initialData?.postal_code || "")
+  const [geo, setGeo] = useState<[number, number] | null>(
+    initialData?.latitude != null && initialData?.longitude != null
+      ? [initialData.latitude, initialData.longitude]
+      : null
+  )
   const mapRef = useRef<MapSelectorRef>(null)
 
   // Horario
-  const [schedule, setSchedule] = useState({
-    monday: { isOpen: true, openTime: "08:00", closeTime: "18:00" },
-    tuesday: { isOpen: true, openTime: "08:00", closeTime: "18:00" },
-    wednesday: { isOpen: true, openTime: "08:00", closeTime: "18:00" },
-    thursday: { isOpen: true, openTime: "08:00", closeTime: "18:00" },
-    friday: { isOpen: true, openTime: "08:00", closeTime: "18:00" },
-    saturday: { isOpen: true, openTime: "09:00", closeTime: "13:00" },
-    sunday: { isOpen: false, openTime: "09:00", closeTime: "13:00" },
-  })
+  const [schedule, setSchedule] = useState(
+    initialData?.schedule_json || {
+      monday: { isOpen: true, openTime: "08:00", closeTime: "18:00" },
+      tuesday: { isOpen: true, openTime: "08:00", closeTime: "18:00" },
+      wednesday: { isOpen: true, openTime: "08:00", closeTime: "18:00" },
+      thursday: { isOpen: true, openTime: "08:00", closeTime: "18:00" },
+      friday: { isOpen: true, openTime: "08:00", closeTime: "18:00" },
+      saturday: { isOpen: true, openTime: "09:00", closeTime: "13:00" },
+      sunday: { isOpen: false, openTime: "09:00", closeTime: "13:00" },
+    }
+  )
 
   // Métodos de pago / servicios
-  const [paymentMethods, setPaymentMethods] = useState({
-    cards: false,
-    cash: false,
-    sinpe: false,
-  })
-  const [additionalServices, setAdditionalServices] = useState({
-    guidesPrinting: false,
-    parking: false,
-    accessibility: false,
-  })
+  const [paymentMethods, setPaymentMethods] = useState(
+    initialData?.services_json
+      ? {
+        cards: initialData.services_json.cards,
+        cash: initialData.services_json.cash,
+        sinpe: initialData.services_json.sinpe,
+      }
+      : { cards: false, cash: false, sinpe: false }
+  )
+  const [additionalServices, setAdditionalServices] = useState(
+    initialData?.services_json
+      ? {
+        guidesPrinting: initialData.services_json.guidesPrinting,
+        parking: initialData.services_json.parking,
+        accessibility: initialData.services_json.accessibility,
+      }
+      : { guidesPrinting: false, parking: false, accessibility: false }
+  )
 
-  // Efecto para notificar cambios al padre
+  // Sync cuando cambien los initialData
   useEffect(() => {
-    // sólo llamamos si onChange fue pasado
-    if (onChange) {
-      onChange({
-        company_id: companyId,
-        name,
-        whatsapp_contact: telefono,
-        business_email: email,
-        province,
-        canton,
-        district,
-        exact_address: exactAddress,
-        postal_code: postalCode,
-        latitude: geo?.[0],
-        longitude: geo?.[1],
-        schedule_json: schedule,
-        services_json: { ...paymentMethods, ...additionalServices },
+    if (!initialData) return
+    setName(initialData.name || "")
+    setTelefono(initialData.whatsapp_contact || "")
+    setEmail(initialData.business_email || "")
+    setCompanyId(initialData.company_id ?? null)
+    setExactAddress(initialData.exact_address || "")
+    setPostalCode(initialData.postal_code || "")
+    if (
+      initialData.latitude != null &&
+      initialData.longitude != null
+    ) {
+      setGeo([initialData.latitude, initialData.longitude])
+    }
+    if (initialData.schedule_json) {
+      setSchedule(initialData.schedule_json)
+    }
+    if (initialData.services_json) {
+      const s = initialData.services_json
+      setPaymentMethods({ cards: s.cards, cash: s.cash, sinpe: s.sinpe })
+      setAdditionalServices({
+        guidesPrinting: s.guidesPrinting,
+        parking: s.parking,
+        accessibility: s.accessibility,
       })
     }
+  }, [initialData])
+
+  // Efecto para notificar cambios al padre (YA NO depende de onChange)
+  useEffect(() => {
+    onChange({
+      company_id: companyId,
+      name,
+      whatsapp_contact: telefono,
+      business_email: email,
+      exact_address: exactAddress,
+      postal_code: postalCode,
+      latitude: geo?.[0],
+      longitude: geo?.[1],
+      location_json: locationJson,
+      schedule_json: schedule,
+      services_json: { ...paymentMethods, ...additionalServices },
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     companyId,
     name,
     telefono,
     email,
-    province,
-    canton,
-    district,
     exactAddress,
     postalCode,
     geo,
     schedule,
     paymentMethods,
     additionalServices,
-    onChange,  // recuerda incluir onChange en deps
   ])
 
-  // Helpers para horario
+  // Helpers para horario...
   const toggleDay = (day: string) => {
     setSchedule((prev) => ({
       ...prev,
@@ -193,7 +235,7 @@ export default function PdeGeneralDataForm({
     }
   }
 
-  // Toggle métodos / servicios
+  // Toggle métodos / servicios...
   const togglePaymentMethod = (method: keyof typeof paymentMethods) => {
     setPaymentMethods((prev) => ({ ...prev, [method]: !prev[method] }))
   }
@@ -258,6 +300,7 @@ export default function PdeGeneralDataForm({
               <CompanyVisualSelector
                 value={companyId}
                 onChange={(id) => setCompanyId(id)}
+                companies={companies}
               />
             </div>
           </div>
@@ -280,63 +323,6 @@ export default function PdeGeneralDataForm({
           </div>
         </CardHeader>
         <CardContent className="p-6 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="space-y-2">
-              <Label htmlFor="province">Provincia</Label>
-              <Select
-                value={province}
-                onValueChange={setProvince}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccione una" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="san_jose">San José</SelectItem>
-                  <SelectItem value="alajuela">Alajuela</SelectItem>
-                  <SelectItem value="cartago">Cartago</SelectItem>
-                  <SelectItem value="heredia">Heredia</SelectItem>
-                  <SelectItem value="guanacaste">Guanacaste</SelectItem>
-                  <SelectItem value="puntarenas">Puntarenas</SelectItem>
-                  <SelectItem value="limon">Limón</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="canton">Cantón</Label>
-              <Select
-                value={canton}
-                onValueChange={setCanton}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccione una" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="central">Central</SelectItem>
-                  <SelectItem value="escazu">Escazú</SelectItem>
-                  <SelectItem value="desamparados">Desamparados</SelectItem>
-                  <SelectItem value="puriscal">Puriscal</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="district">Distrito</Label>
-              <Select
-                value={district}
-                onValueChange={setDistrict}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccione una" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="carmen">Carmen</SelectItem>
-                  <SelectItem value="merced">Merced</SelectItem>
-                  <SelectItem value="hospital">Hospital</SelectItem>
-                  <SelectItem value="catedral">Catedral</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
           <div className="space-y-2">
             <Label htmlFor="exactAddress">Dirección exacta</Label>
             <Textarea
@@ -378,9 +364,17 @@ export default function PdeGeneralDataForm({
               <LocateFixed className="w-4 h-4 text-blue-600" />
               Ubicarme
             </button>
+            {locationJson?.display_name && (
+              <div className="text-sm text-gray-700 bg-gray-50 border rounded-md px-4 py-2">
+                Ubicación detectada: <strong>{locationJson.display_name}</strong>
+              </div>
+            )}
             <MapSelector
               ref={mapRef}
-              onLocationSelect={(lat, lng) => setGeo([lat, lng])}
+              onLocationSelect={(locationData) => {
+                setGeo([locationData.lat, locationData.lon]);
+                setLocationJson(locationData);
+              }}
             />
           </div>
         </CardContent>

@@ -1,90 +1,92 @@
+import { NextRequest, NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+import { getSession } from "@/lib/auth";
+
 // src/app/api/pdes/route.ts
-import { NextRequest, NextResponse } from "next/server"
-import prisma from "@/lib/prisma"
-import { z } from "zod"
-
-/* 1 ▪ Schema ────────────────────────────────────────────────────────────── */
-const deliveryPointSchema = z.object({
-  company_id       : z.string().uuid(),
-  name             : z.string().min(1),
-
-  /* ← repón los campos que quitaste */
-  province         : z.string().optional(),
-  canton           : z.string().optional(),
-  district         : z.string().optional(),
-  exact_address    : z.string().optional(),
-  postal_code      : z.string().optional(),
-  latitude         : z.number().optional(),
-  longitude        : z.number().optional(),
-
-  trade_name       : z.string().optional(),
-  whatsapp_contact : z.string().optional(),
-  business_email   : z.string().email().optional().or(z.literal("")),
-  // …
-
-  schedule_json : z.record(z.string(), z.any()),
-  services_json : z.object({
-    cards          : z.boolean(),
-    cash           : z.boolean(),
-    sinpe          : z.boolean(),
-    guidesPrinting : z.boolean(),
-    parking        : z.boolean(),
-    accessibility  : z.boolean(),
-  }),
-
-  storage_area_m2 : z.preprocess(
-    (v) => (typeof v === "string" ? Number(v) : v),
-    z.number()
-  ),
-
-  accepts_xs   : z.boolean(),
-  accepts_s    : z.boolean(),
-  accepts_m    : z.boolean(),
-  accepts_l    : z.boolean(),
-  accepts_xl   : z.boolean(),
-  accepts_xxl  : z.boolean(),
-  accepts_xxxl : z.boolean(),
-})
-
-/* 2 ▪ Handler ───────────────────────────────────────────────────────────── */
 export async function POST(req: NextRequest) {
-  const body = await req.json()
+  const user = await getSession();
+  if (!user) return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+  
+  const data = await req.json();
 
-  /* A. Log raw payload para depuración (solo en dev) */
-  if (process.env.NODE_ENV !== "production") {
-    console.log("📦 Payload recibido /api/pdes:", body)
-  }
+  // 👉  opcional: si NO vas a guardar location_json, desestructura aquí:
+  // const { address: { state, county, suburb } } = data.location_json;
+  // data.province = state;
+  // ...
 
-  /* B. Validación segura */
-  const parsed = deliveryPointSchema.safeParse(body)
-
-  if (!parsed.success) {
-    /* Formatea errores de Zod */
-    const formatted = parsed.error.errors.map((e) => ({
-      path: e.path.join("."),
-      message: e.message,
-    }))
-
-    console.error("❌ Validación PDE:", formatted)
-    return NextResponse.json(
-      { error: "VALIDATION_ERROR", details: formatted },
-      { status: 400 }
-    )
-  }
-
-  /* C. Si pasó validación */
   try {
-    const saved = await prisma.deliveryPoints.create({
+    const pde = await prisma.deliveryPoints.create({
       data: {
         id: crypto.randomUUID(),
-        ...parsed.data,
+        company_id: data.company_id,
+        name: data.name,
+        whatsapp_contact: data.whatsapp_contact,
+        business_email: data.business_email,
+        exact_address: data.exact_address,
+        postal_code: data.postal_code,
+        latitude: data.latitude,
+        longitude: data.longitude,
+        location_json: data.location_json,      // si añades la columna
+        schedule_json: data.schedule_json,
+        services_json: data.services_json,
+        storage_area_m2: data.storage_area_m2,
+        accepts_xs: data.accepts_xs,
+        accepts_s: data.accepts_s,
+        accepts_m: data.accepts_m,
+        accepts_l: data.accepts_l,
+        accepts_xl: data.accepts_xl,
+        accepts_xxl: data.accepts_xxl,
+        accepts_xxxl: data.accepts_xxxl,
+        active: true,
       },
-    })
+      select: { id: true },
+    });
 
-    return NextResponse.json(saved, { status: 201 })
+    return NextResponse.json(pde);
   } catch (err) {
-    console.error("⚠️ Error Prisma:", err)
-    return NextResponse.json({ error: "DATABASE_ERROR" }, { status: 500 })
+    console.error("Error al crear PDE:", err);
+    return NextResponse.json({ error: "Error interno" }, { status: 500 });
   }
 }
-  
+
+
+export async function GET(req: NextRequest) {
+  const user = await getSession();
+  if (!user) {
+    return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+  }
+
+  try {
+    const pdes = await prisma.deliveryPoints.findMany({
+      where: {
+        company: {
+          owner_user_id: user.sub,
+        },
+      },
+      select: {
+        id: true, // Para acciones internas
+        name: true,
+        created_at: true,
+        updated_at: true,
+        active: true,
+        company: {
+          select: {
+            trade_name: true,
+          },
+        },
+      },
+    });
+
+    // Agregar campo temporal de espacio ficticio
+    const enriched = pdes.map((pde) => ({
+      ...pde,
+      usage: Math.floor(Math.random() * 51), // Ej: 0-50
+      capacity: 50,
+    }));
+
+    return NextResponse.json(enriched);
+  } catch (error) {
+    console.error("Error al obtener PDEs:", error);
+    return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
+  }
+}
