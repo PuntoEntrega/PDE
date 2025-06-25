@@ -387,6 +387,7 @@ model UserPde {
   user_id           String         @db.VarChar(36)
   delivery_point_id String         @db.VarChar(36)
   created_at        DateTime?      @default(now()) @db.DateTime(0)
+  active            Boolean?       @default(true)
   DeliveryPoints    DeliveryPoints @relation(fields: [delivery_point_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_userpde_delivery_point")
   Users             Users          @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_userpde_user")
 

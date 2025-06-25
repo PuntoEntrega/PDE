@@ -36,7 +36,7 @@ export default function LeafletGeocoder({ onGeocode }: GeocoderProps) {
     return () => {
       map.removeControl(geocoder)
     }
-  }, [map, onGeocode])
+  }, [map, onGeocode])  
 
   return null
 }

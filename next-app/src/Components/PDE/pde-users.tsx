@@ -11,12 +11,14 @@ import {
   Avatar, AvatarFallback, AvatarImage,
 } from "@/Components/ui/avatar"
 import {
-  Users, User, Mail, Phone, Shield, Plus, Edit, Trash2, Crown, UserCheck,
+  Users, User, Mail, Phone, Shield, Plus, Edit, Lock, Unlock, Crown, UserCheck,
 } from "lucide-react"
 import {
   Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
 } from "@/Components/ui/tooltip"
 import { getPdeUsers, type PdeUser } from "@/Services/pde/pde"
+import { togglePdeUserActive } from "@/Services/pde/pde"
+
 
 // ─── tarjeta reutilizable ───────────────────────────────────────────
 const StyledCard = ({
@@ -53,14 +55,63 @@ export function PDEUsers({ pde }: PDEUsersProps) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    console.log('Soy el id', pde.id);
+
     getPdeUsers(pde.id)
       .then(setUsers)
       .finally(() => setLoading(false))
   }, [pde.id])
 
-  const activeUsers   = users.filter(u => u.status === "active").length
-  const pendingUsers  = users.filter(u => u.status === "pending").length
+  const activeUsers = users.filter(u => u.status === "active").length
+  const pendingUsers = users.filter(u => u.status === "pending").length
   const inactiveUsers = users.filter(u => u.status === "inactive").length
+
+  const getStatusBadge = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "active":
+        return (
+          <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
+            Activo
+          </Badge>
+        )
+      case "pending":
+        return (
+          <Badge variant="outline" className="bg-yellow-100 text-yellow-700 border-yellow-300">
+            Pendiente
+          </Badge>
+        )
+      case "inactive":
+        return (
+          <Badge variant="outline" className="bg-red-100 text-red-700 border-red-300">
+            Inactivo
+          </Badge>
+        )
+      default:
+        return (
+          <Badge variant="outline" className="bg-gray-100 text-gray-700 border-gray-300">
+            {status}
+          </Badge>
+        )
+    }
+  }
+
+  const getActiveBadge = (isActive: boolean) => (
+    isActive ? (
+      <Badge
+        variant="outline"
+        className="bg-green-100 text-green-700 border-green-300"
+      >
+        Activo
+      </Badge>
+    ) : (
+      <Badge
+        variant="outline"
+        className="bg-red-100 text-red-700 border-red-300"
+      >
+        Inactivo
+      </Badge>
+    )
+  )
 
   /* ─── badges auxiliares ───────────────────── */
   const getRoleBadge = (role: string) => {
@@ -101,13 +152,37 @@ export function PDEUsers({ pde }: PDEUsersProps) {
   const formatLastLogin = (dateString: string | null) =>
     dateString
       ? new Date(dateString).toLocaleDateString("es-CR", {
-          year: "numeric",
-          month: "short",
-          day: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-        })
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
       : "Nunca"
+
+
+  const handleToggleUser = async (userId: string, current: boolean) => {
+    try {
+      // 1. Update UI de forma optimista
+      setUsers(prev =>
+        prev.map(u =>
+          u.id === userId ? { ...u, active: !current } : u
+        ),
+      )
+
+      // 2. Llama al API
+      await togglePdeUserActive(pde.id, userId, !current)
+    } catch (e) {
+      // 3. Si falla, revierte
+      setUsers(prev =>
+        prev.map(u =>
+          u.id === userId ? { ...u, active: current } : u
+        ),
+      )
+      console.error("No se pudo cambiar el estado:", e)
+    }
+  }
+
 
   /* ─── render ───────────────────────────────── */
   if (loading) {
@@ -118,6 +193,7 @@ export function PDEUsers({ pde }: PDEUsersProps) {
       </div>
     )
   }
+
 
   return (
     <div className="space-y-6">
@@ -153,8 +229,11 @@ export function PDEUsers({ pde }: PDEUsersProps) {
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-1">
                     <h4 className="font-semibold text-gray-800">{user.name}</h4>
-                    {getRoleBadge(user.role)}
-                    {getStatusBadge(user.status)}
+                    <div className="flex items-center gap-3 mb-1">
+                      <h4 className="font-semibold text-gray-800">{user.name}</h4>
+                      {/* Estado activo / inactivo en la tabla puente */}
+                      {getActiveBadge(user.active)}
+                    </div>
                   </div>
 
                   <div className="flex items-center gap-4 text-sm text-gray-600">
@@ -172,14 +251,11 @@ export function PDEUsers({ pde }: PDEUsersProps) {
                     )}
                   </div>
 
-                  <div className="text-xs text-gray-500 mt-1">
-                    Último acceso: {formatLastLogin(user.lastLogin)}
-                  </div>
                 </div>
               </div>
 
-              {/* acciones */}
               <div className="flex items-center gap-2">
+                {/* Editar */}
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -191,17 +267,26 @@ export function PDEUsers({ pde }: PDEUsersProps) {
                   </Tooltip>
                 </TooltipProvider>
 
+                {/* Activar / Desactivar */}
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button variant="outline" size="sm" className="border-red-300 text-red-600 hover:bg-red-50">
-                        <Trash2 className="h-4 w-4" />
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className={user.active ? "border-green-300 text-green-600 hover:bg-green-50" : "border-yellow-300 text-yellow-600 hover:bg-yellow-50"}
+                        onClick={() => handleToggleUser(user.id, user.active)}
+                      >
+                        {user.active ? <Unlock className="h-4 w-4" /> : <Lock className="h-4 w-4" />}
                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent><p>Eliminar usuario</p></TooltipContent>
+                    <TooltipContent>
+                      <p>{user.active ? "Desactivar usuario" : "Activar usuario"}</p>
+                    </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               </div>
+
             </div>
           ))}
         </div>
