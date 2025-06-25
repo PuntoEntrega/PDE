@@ -121,8 +121,9 @@ model DeliveryPoints {
   district                                          String?                      @db.VarChar(60)
   exact_address                                     String?                      @db.VarChar(256)
   postal_code                                       String?                      @db.VarChar(12)
-  latitude                                          Float?                       @db.Float
-  longitude                                         Float?                       @db.Float
+  latitude                                          Decimal?                     @db.Decimal(10, 8)
+  longitude                                         Decimal?                     @db.Decimal(11, 8)
+  location_json                                     Json?
   map_snapshot_url                                  String?                      @db.VarChar(256)
   schedule_json                                     Json?
   services_json                                     Json?
@@ -146,7 +147,7 @@ model DeliveryPoints {
   Guides_Guides_delivery_point_idToDeliveryPoints   Guides[]                     @relation("Guides_delivery_point_idToDeliveryPoints")
   UserPde                                           UserPde[]
 
-  @@index([company_id], map: "company_id")
+  @@index([company_id, status], map: "company_status")
 }
 
 model DocumentTypes {
@@ -386,6 +387,7 @@ model UserPde {
   user_id           String         @db.VarChar(36)
   delivery_point_id String         @db.VarChar(36)
   created_at        DateTime?      @default(now()) @db.DateTime(0)
+  active            Boolean?       @default(true)
   DeliveryPoints    DeliveryPoints @relation(fields: [delivery_point_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_userpde_delivery_point")
   Users             Users          @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "fk_userpde_user")
 

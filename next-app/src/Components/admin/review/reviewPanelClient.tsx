@@ -26,7 +26,7 @@ export default function ReviewPanelClient({ adminId }: ReviewPanelClientProps) {
   const [selectedItem, setSelectedItem] = useState<ReviewItem | null>(null)
 
   const handleItemSelect = (item: ReviewItem) => {
-    setSelectedItem(item)
+    setSelectedItem(item) 
   }
 
   const handleBackToList = () => {

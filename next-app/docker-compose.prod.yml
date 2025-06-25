@@ -1,0 +1,31 @@
+version: "3.8"
+
+# docker compose -f docker-compose.prod.yml up -d --build
+services:
+  redis:
+    image: redis:7
+    container_name: prod-redis
+    restart: always
+
+  nextjs:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: prod-nextjs
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env.production
+    depends_on:
+      - redis
+
+  # nginx opcional si se usa para servir el front
+  nginx:
+    image: nginx:latest
+    container_name: prod-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - nextjs

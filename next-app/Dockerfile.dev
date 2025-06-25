@@ -5,14 +5,10 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install --legacy-peer-deps
 
-# ✅ Copiá solo la carpeta prisma antes del generate
 COPY prisma ./prisma
 RUN npx prisma generate
 
-# ✅ Luego copiás el resto del proyecto
 COPY . .
 
 EXPOSE 3000
-VOLUME /app/node_modules
-
 CMD ["npm", "run", "dev"]
