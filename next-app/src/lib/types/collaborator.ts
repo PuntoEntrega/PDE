@@ -66,7 +66,11 @@ export interface DeliveryPoint {
 export interface CompanyWithRole {
     id: string
     name: string
-    role_in_company: Role
+    role_in_company: {
+        id: string
+        name: string
+        level: number
+    }
     puntos_de_entrega?: DeliveryPoint[]
 }
 
@@ -78,8 +82,13 @@ export interface CollaboratorSummary {
     username: string
     phone: string | null
     email: string
-    active: boolean
-    role: Role
+    active?: boolean
+    role: {
+        id: string
+        name: string
+        level: number
+        description: string
+    }
     status: "draft" | "under_review" | "active" | "inactive" | "rejected"
     verified: boolean
     created_at: string
@@ -127,23 +136,21 @@ export interface InvitationFormData {
 
 export interface Collaborator {
     id: string
-    avatar_url?: string
+    avatar_url: string | null
     first_name: string
     last_name: string
     username: string
-    phone?: string
+    phone: string | null
     email: string
     role: {
         id: string
         name: string
+        description: string
         level: number
     }
-    companies: {
-        id: string
-        name: string
-    }[]
+    companies: CompanyWithRole[]
     primary_company_name: string
-    status: "active" | "inactive" | "under_review" | string
+    status: "active" | "inactive" | "under_review" | "draft" | "rejected"
     verified: boolean
     created_at: string
 }

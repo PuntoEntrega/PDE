@@ -59,7 +59,7 @@ export async function GET(req: NextRequest) {
   try {
     const pdes = await prisma.deliveryPoints.findMany({
       where: {
-        company: {
+        Companies: {
           owner_user_id: user.sub,
         },
       },
@@ -69,7 +69,7 @@ export async function GET(req: NextRequest) {
         created_at: true,
         updated_at: true,
         active: true,
-        company: {
+        Companies: {
           select: {
             trade_name: true,
           },

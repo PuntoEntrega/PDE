@@ -47,24 +47,24 @@ export const ALL_ROLES_INFO: RoleInfo[] = [
 export const MOCK_COMPANIES_FOR_INVITATION: CompanyOptionForInvitation[] = [
     {
         id: "company_alpha_123",
-        name: "Alpha Corp",
+        trade_name: "Alpha Corp",
         delivery_points: [
-            { id: "dp_alpha_a", name: "Sucursal Centro Alpha" },
-            { id: "dp_alpha_b", name: "Depósito Norte Alpha" },
+            { id: "dp_alpha_a", name: "Sucursal Centro Alpha", address: 'Mock de adress', active: true},
+            { id: "dp_alpha_b", name: "Depósito Norte Alpha", address: 'Mock de adress', active: true },
         ],
     },
     {
         id: "company_beta_456",
-        name: "Beta Solutions",
-        delivery_points: [{ id: "dp_beta_x", name: "Punto Beta Principal" }],
+        trade_name: "Beta Solutions",
+        delivery_points: [{ id: "dp_beta_x", name: "Punto Beta Principal", address: 'Mock de adress', active: true }],
     },
     {
         id: "company_gamma_789",
-        name: "Gamma Logistics",
+        trade_name: "Gamma Logistics",
         delivery_points: [
-            { id: "dp_gamma_1", name: "Hub Gamma Este" },
-            { id: "dp_gamma_2", name: "Almacén Gamma Oeste" },
-            { id: "dp_gamma_3", name: "Centro Distribución Gamma Sur" },
+            { id: "dp_gamma_1", name: "Hub Gamma Este", address: 'Mock de adress', active: true },
+            { id: "dp_gamma_2", name: "Almacén Gamma Oeste", address: 'Mock de adress', active: true },
+            { id: "dp_gamma_3", name: "Centro Distribución Gamma Sur", address: 'Mock de adress', active: true },
         ],
     },
 ]
@@ -97,10 +97,12 @@ export const CURRENT_USER_AS_DP_ADMIN: MockCurrentUser = {
     accessible_companies: [MOCK_COMPANIES_FOR_INVITATION[1]],
 }
 
+const avatar_var = "/placeholder.svg?width=40&height=40"
+
 export const MOCK_COLLABORATORS: CollaboratorSummary[] = [
     {
         id: "collab_1",
-        avatar_url: "/placeholder.svg?width=40&height=40",
+        avatar_url: avatar_var,
         first_name: "Juan",
         last_name: "Pérez",
         username: "juan.perez",
@@ -165,6 +167,7 @@ export const MOCK_COLLABORATORS: CollaboratorSummary[] = [
         id: "collab_4",
         first_name: "Laura",
         last_name: "Martínez",
+        avatar_url: avatar_var,
         username: "laura.martinez",
         phone: "+54 11 4567-8901",
         email: "laura.martinez@example.com",

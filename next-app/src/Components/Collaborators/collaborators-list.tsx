@@ -71,7 +71,7 @@ export function CollaboratorsList() {
                 ])
                 setCollaborators(collaboratorsData)
                 console.log("colaboradores data", collaboratorsData);
-                
+
                 setFilterOptions(filtersData)
             } catch (err: any) {
                 setError(err.message || "Error al cargar colaboradores o filtros")
@@ -88,6 +88,8 @@ export function CollaboratorsList() {
             console.log("🔍 Colaboradores cargados:", collaborators)
         }
     }, [collaborators, loading])
+
+    
 
     const filteredCollaborators = useMemo(() => {
         return collaborators.filter((collaborator) => {

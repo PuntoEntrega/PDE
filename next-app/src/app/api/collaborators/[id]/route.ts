@@ -6,12 +6,12 @@ import prisma from '@/lib/prisma';
 import { getSession } from '@/lib/auth';
 
 export async function GET(
-    request: NextRequest,
-    { params }: { params: { id: string } }
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params; 
     try {
-        // 1. Extraer ID y verificar sesión
-        const { id } = params;
+        // 1. Verificar sesión
         const session = await getSession();
         if (!session) {
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -111,13 +111,13 @@ export async function GET(
 import { v4 as uuidv4 } from "uuid"
 
 export async function PATCH(
-    req: NextRequest,
-    { params }: { params: { id: string } }
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id: collaboratorId } = await params; 
     const session = await getSession();
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const collaboratorId = params.id;
     const { role_id, company_ids, delivery_point_ids } = await req.json();
 
     const userToUpdate = await prisma.users.findUnique({ where: { id: collaboratorId } });
