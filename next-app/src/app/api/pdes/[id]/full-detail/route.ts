@@ -11,7 +11,7 @@ export async function GET(
     const pde = await prisma.deliveryPoints.findUnique({
       where: { id: pdeId },
       include: {
-        company: {
+        Companies: {
           select: {
             trade_name: true,
             logo_url: true,

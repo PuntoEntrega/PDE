@@ -8,14 +8,13 @@ import { v4 as uuidv4 } from "uuid";
 import bcrypt from "bcryptjs";
 
 export async function POST(
-    req: NextRequest,
-    { params }: { params: { id: string } }
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id: targetUserId } = await params; 
     const session = await getSession()
     if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-
     const actingUserId = session.sub
-    const targetUserId = params.id
 
     // Obtener usuario que hace la acción
     const actingUser = await prisma.users.findUnique({

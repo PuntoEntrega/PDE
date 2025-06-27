@@ -382,6 +382,7 @@ export function InvitationForm({
     const { user } = useUser() // Assuming useUser provides current user info
     const [availableRoles, setAvailableRoles] = useState<RoleOptionForInvitation[]>([])
     const [availableCompanies, setAvailableCompanies] = useState<CompanyOptionForInvitation[]>([])
+
     const [availableDeliveryPoints, setAvailableDeliveryPoints] = useState<DeliveryPointWithCompany[]>([])
     const [isLoadingData, setIsLoadingData] = useState(true)
 
@@ -527,7 +528,10 @@ export function InvitationForm({
                 const allDpsPromises = selectedCompanyIds.map(async (companyId) => {
                     const company = availableCompanies.find((c) => c.id === companyId)
                     if (!company) return []
-                    const dps = await getAssignablePdes(companyId)
+
+                    const dpsResponse = await getAssignablePdes(companyId) // 👈 devuelve un objeto
+                    const dps = dpsResponse.delivery_points ?? [] // 👈 accedes a array o fallback []
+
                     return dps.map((dp) => ({
                         ...dp,
                         company_id: companyId,
@@ -541,7 +545,7 @@ export function InvitationForm({
 
                 // Filtrar los PdEs seleccionados para mantener solo los válidos
                 const validSelectedDpIds = selectedDeliveryPointIds.filter((dpId) =>
-                    flattenedDps.some((validDp) => validDp.id === dpId),
+                    flattenedDps.some((validDp: any) => validDp.id === dpId),
                 )
                 if (validSelectedDpIds.length !== selectedDeliveryPointIds.length) {
                     setValue("delivery_point_ids", validSelectedDpIds, { shouldValidate: true })
