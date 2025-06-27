@@ -2,10 +2,13 @@ import { NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { uploadImageToS3 } from "@/lib/s3Uploader"
 import { v4 as uuidv4 } from "uuid"
-import redis from "@/lib/redis"
+import { getRedisClient } from "@/lib/redis"
+const redis = getRedisClient()
 import { getCompanyStatusEmail } from "@/lib/templates/emailCompanyStatus"
 import { notifyAdminsCompanyReview } from "@/lib/helpers/notifyAdminsCompany"
 import { sendEmailWithMandrill } from "@/lib/messaging/email"
+import { randomUUID } from "crypto"
+import { _uuidv4 } from "zod/v4/core"
 
 export async function POST(req: NextRequest) {
   try {
@@ -35,7 +38,7 @@ export async function POST(req: NextRequest) {
     const legal_name = formData.get("legal_name") as string;
     const trade_name = formData.get("trade_name") as string;
     const legal_id = formData.get("legal_id") as string;
-    const company_type = formData.get("company_type") as string;
+    const company_type = formData.get("company_type") as any;
     const fiscal_address = formData.get("fiscal_address") as string;
     const contact_email = formData.get("contact_email") as string;
     const contact_phone = formData.get("contact_phone") as string;
@@ -124,6 +127,7 @@ export async function POST(req: NextRequest) {
     // 9. Guardar historial de estado
     await prisma.companyStatusHistory.create({
       data: {
+        id: uuidv4(),
         company_id: companyId,
         changed_by_id: owner_user_id,
         previous_status: "draft",

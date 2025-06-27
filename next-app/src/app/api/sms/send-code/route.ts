@@ -1,7 +1,8 @@
 // src/app/api/sms/send-code/route.ts
 import { NextRequest, NextResponse } from "next/server"
 import { sendSms } from "@/lib/messaging/sms"
-import redis from "@/lib/redis"
+import { getRedisClient } from "@/lib/redis"
+const redis = getRedisClient()
 
 function generateCode(): string {
     return Math.floor(100000 + Math.random() * 900000).toString()

@@ -4,9 +4,9 @@ import { NextResponse, NextRequest } from "next/server"
 // src/app/api/pdes/[id]/users/route.ts
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const pdeId = params.id
+  const { id: pdeId } = await params; 
 
   try {
     const rows = await prisma.userPde.findMany({

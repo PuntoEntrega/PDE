@@ -29,6 +29,17 @@ interface CompanyMini {
     active: boolean
 }
 
+type DayKey = 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday'
+
+type Schedule = {
+    [K in DayKey]: {
+        isOpen: boolean
+        openTime: string
+        closeTime: string
+    }
+}
+
+
 export default function PDECreator() {
     const router = useRouter()
     const { user } = useUser()
@@ -50,14 +61,14 @@ export default function PDECreator() {
     const [locationJson, setLocationJson] = useState<any>(null)
 
     /* ─────────────────────────────  Horario  ───────────────────────────────── */
-    const [schedule, setSchedule] = useState({
-        monday: { isOpen: true, openTime: "08:00", closeTime: "18:00" },
-        tuesday: { isOpen: true, openTime: "08:00", closeTime: "18:00" },
-        wednesday: { isOpen: true, openTime: "08:00", closeTime: "18:00" },
-        thursday: { isOpen: true, openTime: "08:00", closeTime: "18:00" },
-        friday: { isOpen: true, openTime: "08:00", closeTime: "18:00" },
-        saturday: { isOpen: true, openTime: "09:00", closeTime: "13:00" },
-        sunday: { isOpen: false, openTime: "09:00", closeTime: "13:00" },
+    const [schedule, setSchedule] = useState<Schedule>({
+        monday: { isOpen: true, openTime: "05:00", closeTime: "18:00" },
+        tuesday: { isOpen: true, openTime: "05:00", closeTime: "18:00" },
+        wednesday: { isOpen: true, openTime: "05:00", closeTime: "18:00" },
+        thursday: { isOpen: true, openTime: "05:00", closeTime: "18:00" },
+        friday: { isOpen: true, openTime: "05:00", closeTime: "18:00" },
+        saturday: { isOpen: true, openTime: "08:00", closeTime: "15:00" },
+        sunday: { isOpen: false, openTime: "08:00", closeTime: "15:00" },
     })
 
     /* ────────────────────  Métodos de pago / servicios  ────────────────────── */
@@ -87,10 +98,10 @@ export default function PDECreator() {
     }, [])
 
     /* ─────────────────────────────  Helpers  ───────────────────────────────── */
-    const toggleDay = (day: string) =>
+    const toggleDay = (day: DayKey) =>
         setSchedule(prev => ({ ...prev, [day]: { ...prev[day], isOpen: !prev[day].isOpen } }))
 
-    const updateSchedule = (day: string, f: "openTime" | "closeTime", v: string) =>
+    const updateSchedule = (day: DayKey, f: 'openTime' | 'closeTime', v: string) =>
         setSchedule(prev => ({ ...prev, [day]: { ...prev[day], [f]: v } }))
 
     const togglePaymentMethod = (m: keyof typeof paymentMethods) =>
@@ -217,7 +228,7 @@ export default function PDECreator() {
                         </div>
                         <div className="space-y-2">
                             <Label>Empresa asociada</Label>
-                            <CompanyVisualSelector value={companyId} onChange={setCompanyId} companies={companies} />
+                            <CompanyVisualSelector value={companyId} onChange={setCompanyId} />
                         </div>
                     </div>
                 </CardContent>
@@ -300,13 +311,13 @@ export default function PDECreator() {
                 </CardHeader>
                 <CardContent className="p-6 space-y-4">
                     <div className="flex flex-wrap gap-3 mb-4">
-                        <Button variant="outline" size="sm" onClick={() => setQuickSchedule("weekdays")}>
+                        <Button variant="outline" size="sm" onClick={() => quickSchedule("weekdays")}>
                             Solo laborales
                         </Button>
-                        <Button variant="outline" size="sm" onClick={() => setQuickSchedule("all")}>
+                        <Button variant="outline" size="sm" onClick={() => quickSchedule("all")}>
                             Todos los días
                         </Button>
-                        <Button variant="outline" size="sm" onClick={() => setQuickSchedule("none")}>
+                        <Button variant="outline" size="sm" onClick={() => quickSchedule("none")}>
                             Ninguno
                         </Button>
                     </div>
@@ -325,7 +336,7 @@ export default function PDECreator() {
                                     )}
                                 >
                                     <div className="absolute top-3 right-3">
-                                        <Switch checked={cfg.isOpen} onCheckedChange={() => toggleDay(key)} />
+                                        <Switch checked={cfg.isOpen} onCheckedChange={() => toggleDay(key as DayKey)} />
                                     </div>
                                     <h3 className={cfg.isOpen ? "text-purple-900 font-medium" : "text-gray-500"}>{dayName}</h3>
                                     {cfg.isOpen ? (
@@ -333,14 +344,14 @@ export default function PDECreator() {
                                             <Input
                                                 type="time"
                                                 value={cfg.openTime}
-                                                onChange={(e) => updateSchedule(key, "openTime", e.target.value)}
+                                                onChange={(e) => updateSchedule(key as DayKey, "openTime", e.target.value)}
                                                 className="text-sm"
                                             />
                                             <span className="text-gray-500">a</span>
                                             <Input
                                                 type="time"
                                                 value={cfg.closeTime}
-                                                onChange={(e) => updateSchedule(key, "closeTime", e.target.value)}
+                                                onChange={(e) => updateSchedule(key as DayKey, "closeTime", e.target.value)}
                                                 className="text-sm"
                                             />
                                         </div>

@@ -24,7 +24,7 @@ export async function GET() {
         id: u.id,
         name: `${u.first_name} ${u.last_name}`,
         email: u.email,
-        company: u.Companies?.legal_name ?? "Sin empresa",
+        company: "Sin empresa",
         status: u.status,
         reason: latest?.reason ?? "Sin razón registrada",
       };

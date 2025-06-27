@@ -4,11 +4,11 @@ import { Loader2 } from "lucide-react"
 import { PDEDetails } from "@/Components/PDE/pde-details"
 
 interface PDEDetailsPageProps {
-  params: { pdeId: string }
+  params: Promise<{ pdeId: string }>
 }
 
-export default function PDEDetailsPage({ params }: PDEDetailsPageProps) {
-  const { pdeId } = params
+export default async function PDEDetailsPage({ params }: PDEDetailsPageProps) {
+  const { pdeId } =await params
 
   return (
     <div>

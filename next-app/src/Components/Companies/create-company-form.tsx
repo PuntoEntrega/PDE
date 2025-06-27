@@ -114,6 +114,7 @@ const InputField: React.FC<InputFieldProps> = ({
 
 interface CreateCompanyFormProps {
     initialData?: FullCompanyFormData & { id?: string }
+  onCancel?: () => void
 }
 
 const SelectField: React.FC<SelectFieldProps> = ({
@@ -391,12 +392,12 @@ export function CreateCompanyForm({ initialData }: CreateCompanyFormProps) {
 
             // Campos principales
             formData.append("legal_name", data.legal_name)
-            formData.append("trade_name", data.trade_name)
+            formData.append("trade_name", data.trade_name || "")
             formData.append("legal_id", data.legal_id)
             formData.append("company_type", data.company_type || "")
             formData.append("fiscal_address", data.fiscal_address)
             formData.append("contact_email", data.contact_email)
-            formData.append("contact_phone", data.contact_phone)
+            formData.append("contact_phone", data.contact_phone || "")
 
             if (data.parent_company_id && data.parent_company_id !== "none") {
                 formData.append("parent_company_id", data.parent_company_id)

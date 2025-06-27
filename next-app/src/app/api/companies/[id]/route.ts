@@ -2,14 +2,15 @@
 import { NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { uploadImageToS3 } from "@/lib/s3Uploader"
-import redis from "@/lib/redis"
+import { getRedisClient } from "@/lib/redis"
+const redis = getRedisClient()
 
 export async function PATCH(
-    req: NextRequest,
-    context: { params: { id: string } }   // ✔ evita el warning
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
-    const companyId = context.params.id
-    console.log("🔑 companyId:", companyId)
+  const { id } = await params; 
+    console.log("🔑 companyId:", id)
 
     try {
         const contentType = req.headers.get("content-type") || ""
@@ -30,7 +31,7 @@ export async function PATCH(
             }
 
             const updated = await prisma.companies.update({
-                where: { id: companyId },
+                where: { id: id },
                 data: { active: body.active },
             })
 
@@ -73,7 +74,7 @@ export async function PATCH(
         if (logo_url) dataToUpdate.logo_url = logo_url
 
         const updatedCompany = await prisma.companies.update({
-            where: { id: companyId },
+            where: { id: id },
             data: dataToUpdate,
         })
         console.log("🏢 Empresa actualizada:", updatedCompany.id)
@@ -88,7 +89,7 @@ export async function PATCH(
         const secondary_phone = secondary_phoneRaw?.trim() || null
 
         const legRep = await prisma.legalRepresentatives.findFirst({
-            where: { company_id: companyId },
+            where: { company_id: id },
             select: { id: true },
         })
 

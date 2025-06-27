@@ -187,7 +187,7 @@ export default function ReviewPDEPageClient({ adminId, onItemSelect }: ReviewPDE
                       <AvatarFallback className="bg-purple-100 text-purple-700 rounded-lg">
                         {pde.name
                           ?.split(" ")
-                          .map((n) => n[0])
+                          .map((n: any) => n[0])
                           .join("")
                           .toUpperCase()
                           .slice(0, 2) || "PD"}

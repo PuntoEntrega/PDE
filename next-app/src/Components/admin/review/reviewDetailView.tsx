@@ -257,7 +257,7 @@ export default function ReviewDetailView({ item, adminId, onBack, onStatusChange
   const formatSchedule = (scheduleJson: any) => {
     if (!scheduleJson) return []
 
-    const days = {
+    const days: { [key in DayKeys]: string } = {
       monday: "Lunes",
       tuesday: "Martes",
       wednesday: "Miércoles",
@@ -267,8 +267,10 @@ export default function ReviewDetailView({ item, adminId, onBack, onStatusChange
       sunday: "Domingo",
     }
 
+    type DayKeys = "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday"
+
     return Object.entries(scheduleJson).map(([day, config]: [string, any]) => ({
-      day: days[day],
+      day: days[day as DayKeys],
       isOpen: config.isOpen,
       hours: config.isOpen ? `${config.openTime} - ${config.closeTime}` : "Cerrado",
     }))

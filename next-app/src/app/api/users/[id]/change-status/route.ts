@@ -8,10 +8,10 @@ import { notificarAdminsUnderReview } from "@/lib/helpers/notifyAdmins"
 import { getAccountStatusEmail } from "@/lib/templates/emailTemplate"
 
 export async function PATCH(
-  req: NextRequest,
-  { params: { id } }: { params: { id: string } }
+    req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const userId = id
+  const { id:userId } = await params; 
   const { newStatus, reason, changed_by_id } = await req.json()
 
   const estadosPermitidos = ["active", "inactive", "rejected", "under_review"]

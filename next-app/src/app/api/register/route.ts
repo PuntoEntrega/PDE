@@ -5,13 +5,9 @@ import { sendEmailWithMandrill } from "@/lib/messaging/email";
 import { sendSms } from "@/lib/messaging/sms";
 
 const SALT_ROUNDS = Number(process.env.SALT_ROUNDS ?? 10);
-const DEFAULT_ROLE_ID = process.env.DEFAULT_ROLE_ID;
-
-if (!DEFAULT_ROLE_ID) {
-  throw new Error("❌ DEFAULT_ROLE_ID no está definido en el entorno.");
-}
 
 export async function POST(request: Request) {
+  const DEFAULT_ROLE_ID = process.env.DEFAULT_ROLE_ID;
   try {
     const body = await request.json();
     const {

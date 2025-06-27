@@ -1,5 +1,6 @@
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
+import { randomUUID } from "crypto"
 
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
@@ -7,9 +8,10 @@ import { notifyAdminsCompanyReview } from "@/lib/helpers/notifyAdminsCompany";
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const companyId = params.id;
+  const { id } = await params; 
+  const companyId = id
   const { reason, changed_by_id } = await req.json();
 
   // solo permite desde draft
@@ -21,6 +23,7 @@ export async function PATCH(
     prisma.companies.update({ where: { id: companyId }, data: { status: "under_review" } }),
     prisma.companyStatusHistory.create({
       data: {
+        id: randomUUID(),
         company_id: companyId,
         changed_by_id,
         previous_status: "draft",

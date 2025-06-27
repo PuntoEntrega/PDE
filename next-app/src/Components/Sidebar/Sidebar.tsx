@@ -6,7 +6,6 @@ import './index.css'
 import logoApp from '../../../public/logo_sin_texto.png'
 import { useState } from "react"
 import Link from "next/link"
-import Icono from '../../../public/Icono.svg'
 import Image from "next/image"
 import { cn } from "../../../lib/utils"
 import { useRouter, usePathname } from "next/navigation"
@@ -50,12 +49,16 @@ import {
   DropdownMenuTrigger,
 } from "@/Components/ui/dropdown-menu"
 
-export function Sidebar({ children }: { children: React.ReactNode }) {
+interface SidebarProps {
+  children: React.ReactNode;
+  userName?: string; // ✅ opcional si querés que no sea obligatorio
+}
+
+export function Sidebar({ children, userName }: SidebarProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const router = useRouter()
   const pathname = usePathname();
   const { user } = useUser()
-
 
   const navItems = [
     // sección Principal

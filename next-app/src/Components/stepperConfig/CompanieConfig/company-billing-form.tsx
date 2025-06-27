@@ -176,7 +176,7 @@ export function CompanyBillingForm({
             label="Selecciona la opción para facturación que mejor se ajuste a su empresa:"
             name="billing_distribution_model"
             value={billingFormData.billing_distribution_model}
-            onValueChange={(value) => handleBillingRadioChange("billing_distribution_model", value)}
+            onValueChange={(value: any) => handleBillingRadioChange("billing_distribution_model", value)}
             options={[
               {
                 value: "consolidada",
@@ -216,7 +216,7 @@ export function CompanyBillingForm({
               label="Tipo de Identificación"
               name="document_type_id"
               value={billingFormData.document_type_id}
-              onValueChange={(value) => handleBillingSelectChange("document_type_id", value)}
+              onValueChange={(value: any) => handleBillingSelectChange("document_type_id", value)}
               options={documentTypes}
               error={billingErrors.document_type_id}
               required
@@ -264,7 +264,7 @@ export function CompanyBillingForm({
               label="Tipo de Facturación"
               name="billing_type"
               value={billingFormData.billing_type}
-              onValueChange={(value) => handleBillingSelectChange("billing_type", value)}
+              onValueChange={(value: any) => handleBillingSelectChange("billing_type", value)}
               options={[
                 { value: "CONTADO", label: "Contado" },
                 { value: "CREDITO", label: "Crédito" },
@@ -293,7 +293,7 @@ export function CompanyBillingForm({
             label="Selecciona la opción de pago que mejor se ajuste a tu empresa:"
             name="payment_reception_model"
             value={billingFormData.payment_reception_model}
-            onValueChange={(value) => handleBillingRadioChange("payment_reception_model", value)}
+            onValueChange={(value: any) => handleBillingRadioChange("payment_reception_model", value)}
             options={[
               {
                 value: "unica-cuenta",

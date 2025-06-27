@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
-import redis from "@/lib/redis"
+import { getRedisClient } from "@/lib/redis"
+const redis = getRedisClient()
 import prisma from "@/lib/prisma"
 import jwt from "jsonwebtoken"
 

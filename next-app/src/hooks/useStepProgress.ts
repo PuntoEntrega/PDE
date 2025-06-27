@@ -31,7 +31,7 @@ export function useStepProgress() {
         }
         if (step === 3) {
             // Paso 3: debe existir empresa en Redis (draft)
-            const res = await axios.get(`/api/companies/draft?user_id=${user.sub}`)
+            const res = await axios.get(`/api/companies/draft?user_id=${user?.sub}`)
             return !!res.data.companyId
         }
         return true // Paso 1 o cualquier otro no requiere validación extra
