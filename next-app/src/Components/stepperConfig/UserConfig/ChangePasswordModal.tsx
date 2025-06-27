@@ -97,7 +97,7 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
     setIsSubmitting(true)
     try {
       const res = await fetch(
-        `/api/users/${user?.sub}/change-password`,
+        `/api/users/${user.user?.sub}/change-password`,
         {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
@@ -124,7 +124,7 @@ export function ChangePasswordModal({ isOpen, onClose }: ChangePasswordModalProp
         toast({
           title: '¡Listo!',
           description: 'La contraseña se actualizó correctamente.',
-          variant: 'success',
+          variant: 'default',
         })
         onClose()
         setFormData({

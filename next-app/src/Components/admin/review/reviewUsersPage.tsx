@@ -172,7 +172,7 @@ export default function ReviewUsersClient({ adminId, onItemSelect }: ReviewUsers
                       <AvatarFallback className="bg-blue-100 text-blue-700">
                         {user.name
                           ?.split(" ")
-                          .map((n) => n[0])
+                          .map((n: any) => n[0])
                           .join("")
                           .toUpperCase()
                           .slice(0, 2) || "U"}

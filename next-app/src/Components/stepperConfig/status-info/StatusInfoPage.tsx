@@ -13,7 +13,7 @@ const validStatuses = ["draft", "under_review", "active", "inactive", "rejected"
 export type ValidStatus = typeof validStatuses[number]
 
 interface StatusInfoProps {
-    userStatus: ValidStatus
+    userStatus: ValidStatus | 'draft'
     reason?: string
     userName: string
 }
@@ -24,19 +24,22 @@ export default function StatusInfoPage({
     userName = "Usuario",
 }: StatusInfoProps) {
     const router = useRouter()
-    const { user, setUser } = useUser()
-    userStatus = user?.status 
+    const { user } = useUser()
+
+    const actualStatus: ValidStatus =
+        validStatuses.includes(user?.status as ValidStatus)
+            ? (user?.status as ValidStatus)
+            : "under_review"
 
     const renderContent = () => {
-        switch (userStatus) {
+        switch (actualStatus) {
             case "under_review":
                 return {
                     icon: <TimerReset className="h-10 w-10 text-blue-500" />,
                     title: "Estamos revisando tu solicitud",
-                    description:
-                        `Tu cuenta se encuentra actualmente bajo revisión. Te notificaremos al correo ${user?.email} una vez se verifique la solicitud.`,
+                    description: `Tu cuenta se encuentra actualmente bajo revisión. Te notificaremos al correo ${user?.email} una vez se verifique la solicitud.`,
                     badge: <Badge variant="outline">En revisión</Badge>,
-                }   
+                }
             case "rejected":
                 return {
                     icon: <AlertCircle className="h-10 w-10 text-red-500" />,
@@ -50,9 +53,7 @@ export default function StatusInfoPage({
                 return {
                     icon: <ShieldCheck className="h-10 w-10 text-yellow-500" />,
                     title: "Mal ícono, pero está activa",
-                    description:
-                        reason ||
-                        "Todo bien, activa.",
+                    description: reason || "Todo bien, activa.",
                     badge: <Badge variant="outline">Activa</Badge>,
                 }
             case "inactive":

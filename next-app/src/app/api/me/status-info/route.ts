@@ -17,7 +17,6 @@ export async function GET(req: NextRequest) {
     })
 
     return NextResponse.json({
-      status: user.status, // viene del token o puedes hacer findUnique si necesitas
       reason: latestStatus?.reason ?? null,
       userName: user.first_name + " " + user.last_name,
     })

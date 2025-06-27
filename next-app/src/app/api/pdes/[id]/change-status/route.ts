@@ -8,17 +8,20 @@ import { sendEmailWithMandrill } from "@/lib/messaging/email";
 import { getPDEStatusEmail } from "@/lib/templates/emailPDEStatus";
 import { v4 as uuidv4 } from "uuid"
 
+
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const deliveryPointId = params?.id;
-  console.log('está llegando?', params.id);
+  const { id } = await params;
+  const deliveryPointId = id
 
   // 🔍 Validación explícita de ID
   if (!deliveryPointId) {
     return NextResponse.json({ error: "ID de PDE no recibido" }, { status: 400 });
   }
+
+
 
   console.log("📦 deliveryPointId recibido:", deliveryPointId);
 
@@ -29,7 +32,7 @@ export async function PATCH(
   }
 
   const { newStatus, reason, changed_by_id } = body;
-  
+
   const ALLOWED = ["active", "inactive", "rejected", "under_review"] as const;
   if (!ALLOWED.includes(newStatus)) {
     return NextResponse.json({ error: "Estado inválido" }, { status: 400 });
@@ -44,6 +47,12 @@ export async function PATCH(
     if (!prevPDE) {
       return NextResponse.json({ error: "Punto de Entrega no encontrado" }, { status: 404 });
     }
+
+    const { newStatus, reason, changed_by_id } = body as {
+      newStatus: "active" | "inactive" | "under_review" | "rejected"
+      reason?: string
+      changed_by_id: string
+    };
 
     // 2. Ejecutar transacción de actualización + historial
     await prisma.$transaction([
@@ -62,6 +71,7 @@ export async function PATCH(
         },
       }),
     ]);
+
 
     // 3. Enviar correo si hay email
     if (prevPDE.business_email) {

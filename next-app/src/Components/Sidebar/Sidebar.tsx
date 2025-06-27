@@ -6,7 +6,6 @@ import './index.css'
 import logoApp from '../../../public/logo_sin_texto.png'
 import { useState } from "react"
 import Link from "next/link"
-import Icono from '../../../public/Icono.svg'
 import Image from "next/image"
 import { cn } from "../../../lib/utils"
 import { useRouter, usePathname } from "next/navigation"
@@ -50,19 +49,23 @@ import {
   DropdownMenuTrigger,
 } from "@/Components/ui/dropdown-menu"
 
-export function Sidebar({ children }: { children: React.ReactNode }) {
+interface SidebarProps {
+  children: React.ReactNode;
+  userName?: string; // ✅ opcional si querés que no sea obligatorio
+}
+
+export function Sidebar({ children, userName }: SidebarProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
   const router = useRouter()
   const pathname = usePathname();
   const { user } = useUser()
 
-
   const navItems = [
     // sección Principal
     { label: "Inicio", icon: Home, path: "/dashboard", section: "main" },
     { label: "Empresas", icon: Building, path: "/companies", section: "main" },
-    { label: "Historial", icon: Clock, path: "/history", section: "main" },
-    { label: "Clientes", icon: User, path: "/clients", section: "main" },
+    { label: "Colaboradores", icon: User, path: "/collaborators", section: "main" },
+    { label: "Clientes", icon: Clock, path: "/clients", section: "main" },
     // sección Administración
     { label: "Estadísticas", icon: BarChart2, path: "/stats", section: "admin" },
     { label: "Puntos de Entrega", icon: Store, path: "/pde", section: "admin" },

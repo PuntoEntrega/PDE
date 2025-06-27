@@ -8,8 +8,9 @@ import { v4 as uuidv4 } from "uuid"
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await params; 
   try {
     // Paso 1: Body recibido
     let body;
@@ -28,7 +29,7 @@ export async function PATCH(
     }
 
     // Paso 2: Buscar la empresa
-    const companyId = params.id;
+    const companyId = id;
     console.log("[PATCH] companyId:", companyId);
     const company = await prisma.companies.findUnique({
       where: { id: companyId },
@@ -123,7 +124,7 @@ export async function PATCH(
   } catch (err) {
     // Captura el error real y su stack
     const safeErr = err ?? "(null error thrown)";
-    console.error("❌ Error cambiando estado de empresa:", safeErr, safeErr?.stack);
+    console.error("❌ Error cambiando estado de empresa:", safeErr);
     return NextResponse.json({ error: "Error interno" }, { status: 500 });
   }
 }

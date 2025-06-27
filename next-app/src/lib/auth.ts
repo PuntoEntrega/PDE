@@ -37,6 +37,7 @@ sub: string
   first_name: string
   last_name: string
   username: string
+  level: number
   email: string
   phone: string
   avatar_url: string
@@ -66,8 +67,9 @@ export async function getSession(): Promise<SessionPayload | null> {
 
 
 ///////////////////////////////
-export function getUserFromToken(req: Request) {
-  const token = cookies().get("token")?.value
+export async function getUserFromToken(req: Request) {
+  const cookieStore = await cookies()
+  const token = cookieStore.get("token")?.value
   if (!token) return null
 
   try {

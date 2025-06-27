@@ -36,7 +36,7 @@ import {
 import { z } from "zod"
 import { UserIcon } from "lucide-react"
 import { useUser } from "@/context/UserContext"
-import { useAlert } from "@/Components/Alerts/use-alert"
+import { useAlert } from "@/Components/alerts/use-alert"
 import { useRouter } from "next/navigation"
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -44,23 +44,23 @@ import { useRouter } from "next/navigation"
 // ─────────────────────────────────────────────────────────────────────────────
 
 export const companySchema = z.object({
-  legal_name:     z.string().nonempty("Denominación Fiscal es obligatoria"),
-  trade_name:     z.string().nonempty("Nombre de Comercio es obligatorio"),
-  legal_id:       z.string().nonempty("NIF es obligatorio"),
-  company_type:   z.enum(["PdE", "Transportista"], "Tipo de empresa inválido"),
+  legal_name: z.string().nonempty("Denominación Fiscal es obligatoria"),
+  trade_name: z.string().nonempty("Nombre de Comercio es obligatorio"),
+  legal_id: z.string().nonempty("NIF es obligatorio"),
+  company_type: z.enum(["PdE", "Transportista"]),
   fiscal_address: z.string().nonempty("Domicilio Fiscal es obligatorio"),
-  contact_email:  z.string().email("Correo inválido"),
-  contact_phone:  z.string().nonempty("Teléfono de Contacto es obligatorio"),
-  avatar_url:     z.string().optional(),
+  contact_email: z.string().email("Correo inválido"),
+  contact_phone: z.string().nonempty("Teléfono de Contacto es obligatorio"),
+  avatar_url: z.string().optional(),
 });
 
 export const legalRepSchema = z.object({
-  document_type_id:     z.string().nonempty("Tipo de Identificación es obligatorio"),
-  full_name:            z.string().nonempty("Nombre Completo es obligatorio"),
-  identification_number:z.string().nonempty("Número de Identificación es obligatorio"),
-  email:                z.string().email("Correo inválido"),
-  primary_phone:        z.string().nonempty("Teléfono Principal es obligatorio"),
-  secondary_phone:      z.string().optional(),
+  document_type_id: z.string().nonempty("Tipo de Identificación es obligatorio"),
+  full_name: z.string().nonempty("Nombre Completo es obligatorio"),
+  identification_number: z.string().nonempty("Número de Identificación es obligatorio"),
+  email: z.string().email("Correo inválido"),
+  primary_phone: z.string().nonempty("Teléfono Principal es obligatorio"),
+  secondary_phone: z.string().optional(),
 });
 
 interface CompanyGeneralFormProps {
@@ -118,7 +118,7 @@ export function CompanyGeneralForm({
   const [isSavingLocal, setIsSavingLocal] = useState(false)
 
   // ← ¡NUEVO! Flag para saber si el usuario está en modo “edición” (PATCH)
-const [isEditing, setIsEditing] = useState(() => !initialCompanyData)
+  const [isEditing, setIsEditing] = useState(() => !initialCompanyData)
 
   // ← El mismo estado que antes, para guardar el draftCompanyId retornado desde Redis
   const [draftCompanyId, setDraftCompanyId] = useState<string | null>(null)
@@ -557,7 +557,7 @@ const [isEditing, setIsEditing] = useState(() => !initialCompanyData)
                 label="Tipo de Empresa"
                 name="company_type"
                 value={companyFormData.company_type}
-                onValueChange={(value) =>
+                onValueChange={(value: any) =>
                   handleCompanySelectChange("company_type", value)
                 }
                 options={[
@@ -583,8 +583,8 @@ const [isEditing, setIsEditing] = useState(() => !initialCompanyData)
                 onChange={handleCompanyChange}
                 placeholder="Ej: Calle Principal 123, San José, Costa Rica"
                 className={`min-h-[80px] ${companyErrors.fiscal_address
-                    ? "border-red-500"
-                    : "border-gray-300"
+                  ? "border-red-500"
+                  : "border-gray-300"
                   }`}
                 readOnly={isDraft && !isEditing}
               />
@@ -648,7 +648,7 @@ const [isEditing, setIsEditing] = useState(() => !initialCompanyData)
                 label="Tipo de Identificación"
                 name="document_type_id"
                 value={legalRepFormData.document_type_id}
-                onValueChange={(value) =>
+                onValueChange={(value: any) =>
                   handleLegalRepSelectChange("document_type_id", value)
                 }
                 options={documentTypes}
@@ -737,36 +737,36 @@ const [isEditing, setIsEditing] = useState(() => !initialCompanyData)
                 </>
               )}
             </Button>
-                    {/* ─────────────────────────────────────────────────────────────────────
+            {/* ─────────────────────────────────────────────────────────────────────
              Botón Cancelar Edición
            ────────────────────────────────────────────────────────────────── */}
-        {draftCompanyId && isEditing && (
-          <div className="flex justify-end space-x-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleToggleEdit}
-              className="px-6 py-2 text-sm"
-            >
-              Cancelar
-            </Button>
-          </div>
-        )}
+            {draftCompanyId && isEditing && (
+              <div className="flex justify-end space-x-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleToggleEdit}
+                  className="px-6 py-2 text-sm"
+                >
+                  Cancelar
+                </Button>
+              </div>
+            )}
           </div>
         )}
 
-              {/* ─────────── Si existe draftCompanyId y no estamos en modo edición, mostramos botón “Editar” ─────────── */}
-      {draftCompanyId && !isEditing && (
-        <div className="flex justify-end">
-          <Button
-            onClick={handleToggleEdit}
-            className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-3 text-sm font-medium shadow-lg hover:shadow-xl transition-all duration-200"
-          >
-          <Save className="mr-2 h-5 w-5" />
-            Editar empresa
-          </Button>
-        </div>
-      )}
+        {/* ─────────── Si existe draftCompanyId y no estamos en modo edición, mostramos botón “Editar” ─────────── */}
+        {draftCompanyId && !isEditing && (
+          <div className="flex justify-end">
+            <Button
+              onClick={handleToggleEdit}
+              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-3 text-sm font-medium shadow-lg hover:shadow-xl transition-all duration-200"
+            >
+              <Save className="mr-2 h-5 w-5" />
+              Editar empresa
+            </Button>
+          </div>
+        )}
 
       </form>
     </div>

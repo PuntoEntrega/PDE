@@ -4,10 +4,11 @@ import prisma from "@/lib/prisma"
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const pdeId = params.id
-
+  const { id } = await params;
+  const pdeId = id
+  
   try {
     const body = await req.json()
 

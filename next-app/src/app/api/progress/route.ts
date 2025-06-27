@@ -1,6 +1,7 @@
 // src/app/api/progress/route.ts
 import { NextRequest, NextResponse } from "next/server"
-import redis from "@/lib/redis"
+import { getRedisClient } from "@/lib/redis"
+const redis = getRedisClient()
 import { getSession } from "@/lib/auth"
 
 export async function GET(req: NextRequest) {

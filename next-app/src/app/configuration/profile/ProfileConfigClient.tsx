@@ -27,7 +27,7 @@ export default function ProfileConfigClient() {
     toast({
       title: "Perfil actualizado",
       description: "Tu información personal ha sido guardada correctamente.",
-      variant: "success",
+      variant: "default",
     })
 
     setIsSaving(false)

@@ -10,7 +10,7 @@ import { useToast } from "@/Components/ui/use-toast"
 import { cn } from "../../../../lib/utils" // Asegúrate de tener esta utilidad
 
 interface SMSVerificationProps {
-    userId: string
+    userId: any
     initialVerified: boolean
     initialPhone?: string
     onVerified: (updatedUser: any) => void
@@ -98,7 +98,7 @@ const CodeInputs = ({
             {Array.from({ length: 6 }, (_, index) => (
                 <input
                     key={index}
-                    ref={(el) => (inputRefs.current[index] = el)}
+                    ref={(el: any) => (inputRefs.current[index] = el)}
                     type="text" // Cambiado a text para mejor manejo de borrado y pegado
                     inputMode="numeric"
                     maxLength={1} // Cada input solo acepta un dígito
@@ -164,7 +164,7 @@ export function SMSVerification({ userId, initialVerified, initialPhone, onVerif
     const [isSending, setIsSending] = useState(false)
     const [isVerifying, setIsVerifying] = useState(false)
     const [cooldown, setCooldown] = useState(0)
-    const cooldownRef = useRef<NodeJS.Timer | null>(null)
+    const cooldownRef = useRef<number | null>(null)
 
     // 2) Detectar país via IP
     useEffect(() => {
@@ -180,7 +180,7 @@ export function SMSVerification({ userId, initialVerified, initialPhone, onVerif
             .catch(() => {
                 setDefaultCountry("us")
             })
-            
+
     }, [])
 
     useEffect(() => {
@@ -196,10 +196,9 @@ export function SMSVerification({ userId, initialVerified, initialPhone, onVerif
     }, [initialPhone])
 
     useEffect(() => {
-        if (cooldown > 0) {
-            cooldownRef.current = setInterval(() => {
-                setCooldown((prev) => prev - 1)
-            }, 1000)
+        if (cooldownRef.current) {
+            clearInterval(cooldownRef.current)
+            cooldownRef.current = null
         }
         return () => {
             if (cooldownRef.current) {
@@ -283,7 +282,7 @@ export function SMSVerification({ userId, initialVerified, initialPhone, onVerif
             toast({
                 title: "¡Número verificado!",
                 description: `Tu teléfono +${phoneFull} ha sido confirmado exitosamente.`,
-                variant: "success",
+                variant: "default",
             })
             setStep("verified")
 
@@ -306,7 +305,7 @@ export function SMSVerification({ userId, initialVerified, initialPhone, onVerif
         }
     }
 
-    console.log("spu el pais",defaultCountry);
+    console.log("spu el pais", defaultCountry);
 
     // --------------------------------------------
     // 3) Cancelar / Cambiar número de teléfono

@@ -11,7 +11,7 @@ import { useToast } from "@/Components/ui/use-toast"
 import { Button } from "@/Components/ui/button"
 import { ArrowLeft, ArrowRight } from "lucide-react"
 import { useStepProgress } from "@/hooks/useStepProgress"
-import { useAlert } from "@/Components/Alerts/use-alert"
+import { useAlert } from "@/Components/alerts/use-alert"
 
 export default function CompanyConfigClient() {
   const [activeTab, setActiveTab] = useState("datos-generales")
@@ -39,7 +39,7 @@ export default function CompanyConfigClient() {
       title: "Información Guardada",
       description: `Los datos de ${formType === "datosGenerales" ? "Datos Generales" : "Otra sección"
         } han sido guardados.`,
-      variant: "success",
+      variant: "default",
     })
 
     setIsSaving(false)

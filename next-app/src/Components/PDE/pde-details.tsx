@@ -142,7 +142,7 @@ export function PDEDetails({ pdeId }: PDEDetailsProps) {
         body: JSON.stringify({ active: !pde.active }),
       })
       if (!res.ok) throw new Error("Error al cambiar estado")
-      setPDE((prev) => prev && { ...prev, active: !prev.active })
+      setPDE((prev: any) => prev && { ...prev, active: !prev.active })
       toast({
         title: pde.active ? "Punto de entrega desactivado" : "Punto de entrega activado",
         description: `El punto de entrega ha sido ${pde.active ? "desactivado" : "activado"} correctamente.`,
@@ -317,7 +317,7 @@ export function PDEDetails({ pdeId }: PDEDetailsProps) {
                   <AvatarFallback className="text-4xl font-semibold bg-gradient-to-br from-blue-100 to-blue-200 text-blue-700 rounded-lg">
                     {pde.name
                       .split(" ")
-                      .map((n) => n[0])
+                      .map((n: any) => n[0])
                       .join("")
                       .toUpperCase()
                       .slice(0, 2)}

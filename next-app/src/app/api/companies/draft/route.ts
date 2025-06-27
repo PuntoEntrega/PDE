@@ -1,6 +1,7 @@
 // src/app/api/companies/draft/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import  redis  from "@/lib/redis";
+import { getRedisClient } from "@/lib/redis"
+const redis = getRedisClient()
 
 export async function GET(req: NextRequest) {
     // Se espera la query param ?user_id={user.sub}

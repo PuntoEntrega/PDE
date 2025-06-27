@@ -4,8 +4,11 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { notificarAdminsUnderReview } from "@/lib/helpers/notifyAdmins";
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
-  const userId = params.id;
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id:userId } = await params; 
 
   try {
     const body = await req.json();

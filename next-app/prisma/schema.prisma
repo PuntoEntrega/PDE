@@ -142,7 +142,11 @@ model DeliveryPoints {
   DeliveryHistory                                   DeliveryHistory[]
   DeliveryPointBankAccounts                         DeliveryPointBankAccounts[]
   DeliveryPointStatusHistory                        DeliveryPointStatusHistory[]
+<<<<<<< createCompaniesLogic
+  Companies                                         Companies?                   @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "DeliveryPoints_ibfk_1")
+=======
   company                                           Companies?                   @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "DeliveryPoints_ibfk_1")
+>>>>>>> dev
   Guides_Guides_collection_point_idToDeliveryPoints Guides[]                     @relation("Guides_collection_point_idToDeliveryPoints")
   Guides_Guides_delivery_point_idToDeliveryPoints   Guides[]                     @relation("Guides_delivery_point_idToDeliveryPoints")
   UserPde                                           UserPde[]
@@ -228,37 +232,30 @@ model LegalRepresentatives {
 }
 
 model Packages {
-  id                   String                   @id @db.VarChar(36)
-  package_number       String                   @db.VarChar(40)
-  sender_id            String?                  @db.VarChar(36)
-  carrier              String?                  @db.VarChar(36)
-  recipient_name       String?                  @db.VarChar(100)
-  recipient_id         String?                  @db.VarChar(40)
-  recipient_phone      String?                  @db.VarChar(30)
-  size                 Packages_size?
-  weight               Decimal?                 @db.Decimal(10, 2)
-  charge_amount        Decimal?                 @db.Decimal(10, 2)
-  payment_method       Packages_payment_method?
-  security_code        String?                  @db.VarChar(20)
-  requires_id_photo    Boolean?                 @default(false)
-  requires_signature   Boolean?                 @default(false)
-  requires_document    Boolean?                 @default(false)
-  contactless_delivery Boolean?                 @default(false)
-  additional_info      String?                  @db.Text
-  status               Packages_status?
-  received_at          DateTime?                @db.DateTime(0)
-  delivered_at         DateTime?                @db.DateTime(0)
-  id_photo_url         String?                  @db.VarChar(256)
-  signature_url        String?                  @db.VarChar(256)
-  payment_receipt_url  String?                  @db.VarChar(256)
-  created_at           DateTime?                @default(now()) @db.DateTime(0)
-  updated_at           DateTime?                @default(now()) @db.DateTime(0)
-  DeliveryHistory      DeliveryHistory[]
-  GuidePackages        GuidePackages[]
-  Incidents            Incidents[]
-  Senders              Senders?                 @relation(fields: [sender_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Packages_ibfk_1")
+  id              String                   @id @db.VarChar(36)
+  PDE_Id          String                   @db.VarChar(45)
+  package_number  Json
+  courier_id      String?                  @db.VarChar(36)
+  recipient_name  String?                  @db.VarChar(100)
+  recipient_phone String?                  @db.VarChar(30)
+  recipien_email  String?                  @db.VarChar(45)
+  size            Packages_size?
+  weight          Decimal?                 @db.Decimal(10, 2)
+  charge_amount   Decimal?                 @db.Decimal(10, 2)
+  payment_method  Packages_payment_method?
+  security_code   String?                  @db.VarChar(20)
+  additional_info String?                  @db.Text
+  status          Packages_status?
+  received_at     DateTime?                @db.DateTime(0)
+  delivered_at    DateTime?                @db.DateTime(0)
+  created_at      DateTime?                @default(now()) @db.DateTime(0)
+  updated_at      DateTime?                @default(now()) @db.DateTime(0)
+  Merchant        String?                  @db.VarChar(45)
+  DeliveryHistory DeliveryHistory[]
+  GuidePackages   GuidePackages[]
+  Incidents       Incidents[]
 
-  @@index([sender_id], map: "sender_id")
+  @@index([courier_id], map: "Packages_ibfk_1")
 }
 
 model Roles {
@@ -271,12 +268,11 @@ model Roles {
 }
 
 model Senders {
-  id         String     @id @db.VarChar(36)
-  name       String     @db.VarChar(100)
-  active     Boolean?   @default(true)
-  created_at DateTime?  @default(now()) @db.DateTime(0)
-  updated_at DateTime?  @default(now()) @db.DateTime(0)
-  Packages   Packages[]
+  id         String    @id @db.VarChar(36)
+  name       String    @db.VarChar(100)
+  active     Boolean?  @default(true)
+  created_at DateTime? @default(now()) @db.DateTime(0)
+  updated_at DateTime? @default(now()) @db.DateTime(0)
 }
 
 model Users {
@@ -462,15 +458,11 @@ enum Users_status {
   rejected
 }
 
-enum DeliveryPoints_status {
-  draft
-  under_review
-  active
-  inactive
-  rejected
-}
-
+<<<<<<< createCompaniesLogic
 enum DeliveryPointStatusHistory_previous_status {
+=======
+enum DeliveryPoints_status {
+>>>>>>> dev
   draft
   under_review
   active
@@ -478,7 +470,23 @@ enum DeliveryPointStatusHistory_previous_status {
   rejected
 }
 
+<<<<<<< createCompaniesLogic
 enum DeliveryPointStatusHistory_new_status {
+=======
+enum DeliveryPointStatusHistory_previous_status {
+>>>>>>> dev
+  draft
+  under_review
+  active
+  inactive
+  rejected
+}
+
+<<<<<<< createCompaniesLogic
+enum DeliveryPoints_status {
+=======
+enum DeliveryPointStatusHistory_new_status {
+>>>>>>> dev
   draft
   under_review
   active

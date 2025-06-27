@@ -18,15 +18,22 @@ export async function POST(req: NextRequest) {
       include: { Roles: true },
     });
 
+    console.log("user", user);
+    
+
     if (!user) {
       return NextResponse.json({ error: "Usuario no encontrado" }, { status: 401 });
     }
+
 
     // 2. Compara contraseña
     const valid = await compare(password, user.password_hash);
     if (!valid) {
       return NextResponse.json({ error: "Credenciales inválidas" }, { status: 401 });
-    } 
+    }
+
+    console.log(valid);
+    
 
     // 3. Genera el JWT
     const JWT_SECRET = process.env.JWT_SECRET;
@@ -55,9 +62,11 @@ export async function POST(req: NextRequest) {
       { expiresIn: "8h" }
     );
 
+    console.log(token);
+    
+
     // 4. Determina el context ID
     const isSuperAdmin = user.Roles?.name === "SuperAdminEmpresa"; // ajusta si tu rol tiene otro nombre
-    const relationedCompanyId = isSuperAdmin ? user.id : user.global_company_context_id;
 
     // 5. Serializa cookies
     const tokenCookie = serialize("token", token, {
@@ -65,30 +74,15 @@ export async function POST(req: NextRequest) {
       path: "/",
       maxAge: 8 * 60 * 60,
       sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
+      secure: false,
     });
 
-    const contextCookie = serialize("relationedCompany", relationedCompanyId || "", {
-      httpOnly: true,
-      path: "/",
-      maxAge: 8 * 60 * 60,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-    });
 
     // 6. Respuesta
-    return NextResponse.json(
-      {
-        token,
-        relationedCompanyId,
-      },
-      {
-        status: 200,
-        headers: {
-          "Set-Cookie": [tokenCookie, contextCookie].join(", "),
-        },
-      }
-    );
+    const response = NextResponse.json({ token }, { status: 200 })
+    response.headers.append("Set-Cookie", tokenCookie)
+    return response
+
   } catch (err: any) {
     console.error("LOGIN ERROR:", err);
     return NextResponse.json(
