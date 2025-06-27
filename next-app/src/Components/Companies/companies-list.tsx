@@ -561,7 +561,7 @@ export function CompaniesList() {
                                                                 <AvatarFallback className="text-xs bg-blue-100 text-blue-700 rounded-md">
                                                                     {company.legal_name
                                                                         .split(" ")
-                                                                        .map((n) => n[0])
+                                                                        .map((n: any) => n[0])
                                                                         .join("")
                                                                         .toUpperCase()
                                                                         .slice(0, 2)}

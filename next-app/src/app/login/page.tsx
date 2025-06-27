@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { LoginForm } from "@/Components/Login/login-form"
 import { ForgotPassword } from "@/Components/Login/forgot-password"
-import { AlertProvider } from "@/Components/Alerts/alert-provider"
+import { AlertProvider } from "@/Components/alerts/alert-provider"
 import './index.css'
 
 export default function LoginPage() {

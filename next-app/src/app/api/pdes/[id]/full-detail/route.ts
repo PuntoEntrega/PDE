@@ -1,11 +1,10 @@
-import { NextResponse } from "next/server"
+import { NextResponse, NextRequest } from "next/server"
 import prisma from "@/lib/prisma"
 
 export async function GET(
-  _req: Request,
-  { params }: { params: { id: string } }
+    req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  /* ✅ “await params” – evita la advertencia de Next 15 */
   const { id: pdeId } = await params
 
   try {

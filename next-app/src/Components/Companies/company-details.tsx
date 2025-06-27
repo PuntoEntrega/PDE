@@ -256,9 +256,11 @@ export function CompanyDetails({ companyId }: CompanyDetailsProps) {
 
         return (
             <CreateCompanyForm
-                initialData={initialData}
-                onCancel={() => setIsEditing(false)
-                }
+                initialData={{
+                    ...initialData,
+                    company_type: initialData.company_type as "PdE" | "Transportista",
+                }}
+                onCancel={() => setIsEditing(false)}
             />
         )
     }
@@ -361,7 +363,7 @@ export function CompanyDetails({ companyId }: CompanyDetailsProps) {
                                     </AvatarFallback>
                                 </Avatar>
                                 <Badge
-                                    variant={company.active ? "Componentsult" : "destructive"}
+                                    variant={company.active ? "default" : "destructive"}
                                     className={`absolute -bottom-2 right-0 px-3 py-1 text-xs font-semibold ${company.active
                                         ? "bg-green-100 text-green-700 border border-green-300"
                                         : "bg-red-100 text-red-700 border border-red-300"
@@ -563,7 +565,7 @@ export function CompanyDetails({ companyId }: CompanyDetailsProps) {
                                 label="Estado Actual"
                                 value={
                                     <Badge
-                                        variant={company.active ? "Componentsult" : "destructive"}
+                                        variant={company.active ? "default" : "destructive"}
                                         className={`${company.active
                                             ? "bg-green-100 text-green-700 border border-green-300"
                                             : "bg-red-100 text-red-700 border border-red-300"
@@ -626,7 +628,7 @@ export function CompanyDetails({ companyId }: CompanyDetailsProps) {
                                 <Separator className="my-2" />
                                 <Button
                                     variant="outline"
-                                    className={`w-full justify-start ${      company.active
+                                    className={`w-full justify-start ${company.active
                                         ? "text-red-600 border-red-200 hover:bg-red-50"
                                         : "text-green-600 border-green-200 hover:bg-green-50"
                                         }`}

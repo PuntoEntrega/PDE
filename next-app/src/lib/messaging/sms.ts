@@ -32,7 +32,7 @@ async function getSmsToken(): Promise<string> {
 
   cachedToken = response.data.access_token
   tokenExpiry = now + response.data.expires_in * 1000 - 5000 // pequeño margen
-  return cachedToken
+  return cachedToken!
 }
 
 export async function sendSms(to: string, body: string) {

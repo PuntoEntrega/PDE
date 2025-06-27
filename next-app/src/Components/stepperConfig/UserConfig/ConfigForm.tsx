@@ -28,7 +28,7 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/Components/ui/tooltip"
 import { useToast } from "@/Components/ui/use-toast"
 import { z } from "zod"
-import type { User as UserType } from "@/context/UserContext"
+import type { User, User as UserType } from "@/context/UserContext"
 import { useUser } from "@/context/UserContext"
 import { useRouter } from "next/navigation"
 
@@ -101,6 +101,7 @@ export function ProfileConfigForm({
     avatar_url: "/placeholder.svg?height=128&width=128",
     role_id: "Super Admin",
     company_name: "AMPM",
+    verified: true,
   }
 
   const currentUserData = initialUserData || defaultUserData
@@ -254,7 +255,7 @@ export function ProfileConfigForm({
     const file = (document.getElementById("profile-photo") as HTMLInputElement)?.files?.[0];
     if (file) form.append("avatar", file);
 
-    const res = await fetch(`/api/users/${user.sub}`, { method: "PATCH", body: form });
+    const res = await fetch(`/api/users/${user?.sub}`, { method: "PATCH", body: form });
     if (!res.ok) throw new Error("Error actualizando el usuario");
     return res.json() as Promise<{ token: string }>;
   };
@@ -273,7 +274,7 @@ export function ProfileConfigForm({
       const decoded = jwtDecode(token) as User;           // 3️⃣  decodificar
       setUser(decoded);                                   // 4️⃣  actualizar contexto
 
-      toast({ title: "Usuario actualizado", description: "Cambios guardados.", variant: "success" });
+      toast({ title: "Usuario actualizado", description: "Cambios guardados.", variant: "default" });
       await onSave?.();
     } catch (err) {
       console.error(err);
@@ -287,7 +288,7 @@ export function ProfileConfigForm({
   };
 
 
-  const FormField = ({ label, value, icon: Icon }: { label: string; value: string; icon?: React.ElementType }) => (
+  const FormField = ({ label, value, icon: Icon }: { label: string; value: any; icon?: React.ElementType }) => (
     <div>
       <label className="block text-xs font-medium text-gray-500 mb-0.5">{label}</label>
       <div className="flex items-center h-10 bg-gray-100 border border-gray-200 rounded-md px-3">

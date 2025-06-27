@@ -5,10 +5,8 @@ import prisma from "@/lib/prisma"
 export default async function StatusInfoRoutePage() {
   const user = await getSession()
 
-  const validStatuses: ValidStatus[] = ["draft", "under_review", "active", "inactive", "rejected"]
-  const userStatus: ValidStatus = validStatuses.includes(user?.status as ValidStatus)
-    ? (user?.status as ValidStatus)
-    : "draft"
+  const userStatus = 'active' //Luego se deberá obtener de una respuesta de la bd mediante el unico id que se
+                              // guardará en la cookie del usuario en sesión
 
   const latestStatus = await prisma.userStatusHistory.findFirst({
     where: { user_id: user?.sub },

@@ -5,6 +5,7 @@ import {
   TileLayer,
   Marker,
   useMapEvent,
+  useMap,
 } from "react-leaflet"
 import L from "leaflet"
 import {
@@ -18,6 +19,7 @@ import LeafletGeocoder from "./LeafletGeocoder"
 import { reverseGeocode } from "@/lib/map/reverseGeocode"
 import "leaflet/dist/leaflet.css"
 import "./index.css"
+import { AnyARecord } from "node:dns"
 
 /* ------------------ fix iconos ------------------ */
 delete (L.Icon.Default.prototype as any)._getIconUrl
@@ -90,6 +92,15 @@ const MapSelector = forwardRef<MapSelectorRef, MapSelectorProps>(
       panTo: (coords, z = 17) => mapRef.current?.setView(coords, z),
     }))
 
+    function SetMapRef({ mapRef }: { mapRef: React.MutableRefObject<any> }) {
+      const map = useMap()
+
+      useEffect(() => {
+        mapRef.current = map
+      }, [map])
+
+      return null
+    }
     /* Autolocalizar al montar */
     useEffect(() => {
       navigator.geolocation.getCurrentPosition(
@@ -106,27 +117,12 @@ const MapSelector = forwardRef<MapSelectorRef, MapSelectorProps>(
     return (
       <MapContainer
         center={position}
-        zoom={initialZoom}
+        zoom={13}
         scrollWheelZoom
         className="h-full w-full"
-        whenCreated={(m) => (mapRef.current = m)}
       >
+        <SetMapRef mapRef={mapRef} />
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-
-        <Marker
-          position={position}
-          draggable
-          eventHandlers={{
-            dragend: (e) => {
-              const { lat, lng } = (e.target as L.Marker).getLatLng()
-              moveMarker(lat, lng)
-            },
-          }}
-        />
-
-        <MapClickHandler onClick={(lat, lng) => moveMarker(lat, lng)} />
-
-        <LeafletGeocoder onGeocode={(lat, lng) => moveMarker(lat, lng)} />
       </MapContainer>
     )
   },

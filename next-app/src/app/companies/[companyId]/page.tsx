@@ -5,11 +5,11 @@ import { Loader2 } from "lucide-react"
 import { CompanyDetails } from "@/Components/Companies/company-details"
 
 interface CompanyDetailsPageProps {
-    params: { companyId: string }
+  params: Promise<{ companyId: string }>
 }
 
-export default function CompanyDetailsPage({ params }: CompanyDetailsPageProps) {
-    const { companyId } = params
+export default async function CompanyDetailsPage({ params }: CompanyDetailsPageProps) {
+  const { companyId } = await params
 
 
     return (

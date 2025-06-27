@@ -187,7 +187,7 @@ export default function ReviewCompaniesClient({ adminId, onItemSelect }: ReviewC
                       <AvatarFallback className="bg-green-100 text-green-700 rounded-lg">
                         {company.legal_name
                           ?.split(" ")
-                          .map((n) => n[0])
+                          .map((n: any) => n[0])
                           .join("")
                           .toUpperCase()
                           .slice(0, 2) || "EM"}

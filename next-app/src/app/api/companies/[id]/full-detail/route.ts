@@ -3,11 +3,10 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
 export async function GET(
-    req: NextRequest,
-    context: { params: { id: string } } // ⚠️ `params` es una Promise internamente
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
-    // Aquí hacemos await a context.params antes de extraer `id`
-    const { id } = await context.params;
+  const { id } = await params; 
 
     try {
         // 1. Buscar la compañía por ID

@@ -3,9 +3,9 @@ import prisma from "@/lib/prisma"
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const pdeId = params.id
+  const { id: pdeId } = await params; 
   if (!pdeId) {
     return NextResponse.json({ error: "PDE ID requerido" }, { status: 400 })
   }

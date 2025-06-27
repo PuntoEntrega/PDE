@@ -117,7 +117,7 @@ export function EditPDEGeneralForm({ pde, onCancel, onSave }: EditPDEGeneralForm
     }
   }
 
-  const days = [
+  const days: { key: DayKey; name: string }[] = [
     { key: "monday", name: "Lunes" },
     { key: "tuesday", name: "Martes" },
     { key: "wednesday", name: "Miércoles" },
@@ -127,7 +127,7 @@ export function EditPDEGeneralForm({ pde, onCancel, onSave }: EditPDEGeneralForm
     { key: "sunday", name: "Domingo" },
   ]
 
-  const services = [
+  const services: { key: ServiceKey; name: string; icon: any }[] = [
     { key: "cash", name: "Efectivo", icon: "💵" },
     { key: "cards", name: "Tarjetas", icon: "💳" },
     { key: "sinpe", name: "SINPE Móvil", icon: "📱" },
@@ -135,6 +135,10 @@ export function EditPDEGeneralForm({ pde, onCancel, onSave }: EditPDEGeneralForm
     { key: "accessibility", name: "Accesibilidad", icon: "♿" },
     { key: "guidesPrinting", name: "Impresión de guías", icon: "🖨️" },
   ]
+
+  type ServiceKey = "cash" | "cards" | "sinpe" | "parking" | "accessibility" | "guidesPrinting"
+  type DayKey = "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday"
+
 
   return (
     <Sidebar>
@@ -193,14 +197,15 @@ export function EditPDEGeneralForm({ pde, onCancel, onSave }: EditPDEGeneralForm
                         message: "Email inválido",
                       },
                     })}
-                    className={`h-11 transition-all duration-200 ${
-                      errors.business_email
-                        ? "border-red-500 focus-visible:ring-red-500 bg-red-50"
-                        : "border-gray-300 focus-visible:ring-blue-500 focus-visible:border-blue-500 bg-white"
-                    }`}
+                    className={`h-11 transition-all duration-200 ${errors.business_email
+                      ? "border-red-500 focus-visible:ring-red-500 bg-red-50"
+                      : "border-gray-300 focus-visible:ring-blue-500 focus-visible:border-blue-500 bg-white"
+                      }`}
                     placeholder="contacto@empresa.com"
                   />
-                  {errors.business_email && <p className="text-red-600 text-xs">{errors.business_email.message}</p>}
+                  {errors.business_email && <p className="text-red-600 text-xs">{typeof errors.business_email?.message === "string" && (
+                    <p className="text-red-600 text-xs">{errors.business_email.message}</p>
+                  )}</p>}
                 </div>
 
                 <div className="space-y-2">

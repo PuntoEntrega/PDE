@@ -10,9 +10,10 @@ import { getPDEStatusEmail } from "@/lib/templates/emailPDEStatus";
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const deliveryPointId = params?.id;
+  const { id } = await params; 
+  const deliveryPointId = id
   const body = await req.json().catch(() => null);
   const { changed_by_id } = body || {};
 
