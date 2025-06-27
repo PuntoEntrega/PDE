@@ -110,46 +110,41 @@ model DeliveryPointBankAccounts {
 }
 
 model DeliveryPoints {
-  id                                                String                       @id @db.VarChar(36)
-  company_id                                        String?                      @db.VarChar(36)
-  name                                              String                       @db.VarChar(100)
-  trade_name                                        String?                      @db.VarChar(100)
-  whatsapp_contact                                  String?                      @db.VarChar(30)
-  business_email                                    String?                      @db.VarChar(120)
-  province                                          String?                      @db.VarChar(60)
-  canton                                            String?                      @db.VarChar(60)
-  district                                          String?                      @db.VarChar(60)
-  exact_address                                     String?                      @db.VarChar(256)
-  postal_code                                       String?                      @db.VarChar(12)
-  latitude                                          Decimal?                     @db.Decimal(10, 8)
-  longitude                                         Decimal?                     @db.Decimal(11, 8)
-  location_json                                     Json?
-  map_snapshot_url                                  String?                      @db.VarChar(256)
-  schedule_json                                     Json?
-  services_json                                     Json?
-  storage_area_m2                                   Decimal?                     @db.Decimal(10, 2)
-  accepts_xs                                        Boolean?                     @default(false)
-  accepts_s                                         Boolean?                     @default(false)
-  accepts_m                                         Boolean?                     @default(false)
-  accepts_l                                         Boolean?                     @default(false)
-  accepts_xl                                        Boolean?                     @default(false)
-  accepts_xxl                                       Boolean?                     @default(false)
-  accepts_xxxl                                      Boolean?                     @default(false)
-  status                                            DeliveryPoints_status?       @default(draft)
-  active                                            Boolean?                     @default(true)
-  created_at                                        DateTime?                    @default(now()) @db.DateTime(0)
-  updated_at                                        DateTime?                    @default(now()) @db.DateTime(0)
-  DeliveryHistory                                   DeliveryHistory[]
-  DeliveryPointBankAccounts                         DeliveryPointBankAccounts[]
-  DeliveryPointStatusHistory                        DeliveryPointStatusHistory[]
-<<<<<<< createCompaniesLogic
-  Companies                                         Companies?                   @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "DeliveryPoints_ibfk_1")
-=======
-  company                                           Companies?                   @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "DeliveryPoints_ibfk_1")
->>>>>>> dev
-  Guides_Guides_collection_point_idToDeliveryPoints Guides[]                     @relation("Guides_collection_point_idToDeliveryPoints")
-  Guides_Guides_delivery_point_idToDeliveryPoints   Guides[]                     @relation("Guides_delivery_point_idToDeliveryPoints")
-  UserPde                                           UserPde[]
+  id                         String                       @id @db.VarChar(36)
+  company_id                 String?                      @db.VarChar(36)
+  name                       String                       @db.VarChar(100)
+  trade_name                 String?                      @db.VarChar(100)
+  whatsapp_contact           String?                      @db.VarChar(30)
+  business_email             String?                      @db.VarChar(120)
+  province                   String?                      @db.VarChar(60)
+  canton                     String?                      @db.VarChar(60)
+  district                   String?                      @db.VarChar(60)
+  exact_address              String?                      @db.VarChar(256)
+  postal_code                String?                      @db.VarChar(12)
+  latitude                   Decimal?                     @db.Decimal(10, 8)
+  longitude                  Decimal?                     @db.Decimal(11, 8)
+  location_json              Json?
+  map_snapshot_url           String?                      @db.VarChar(256)
+  schedule_json              Json?
+  services_json              Json?
+  storage_area_m2            Decimal?                     @db.Decimal(10, 2)
+  accepts_xs                 Boolean?                     @default(false)
+  accepts_s                  Boolean?                     @default(false)
+  accepts_m                  Boolean?                     @default(false)
+  accepts_l                  Boolean?                     @default(false)
+  accepts_xl                 Boolean?                     @default(false)
+  accepts_xxl                Boolean?                     @default(false)
+  accepts_xxxl               Boolean?                     @default(false)
+  status                     DeliveryPoints_status?       @default(draft)
+  active                     Boolean?                     @default(true)
+  created_at                 DateTime?                    @default(now()) @db.DateTime(0)
+  updated_at                 DateTime?                    @default(now()) @db.DateTime(0)
+  DeliveryHistory            DeliveryHistory[]
+  DeliveryPointBankAccounts  DeliveryPointBankAccounts[]
+  DeliveryPointStatusHistory DeliveryPointStatusHistory[]
+  Companies                  Companies?                   @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "DeliveryPoints_ibfk_1")
+  Packages                   Packages[]
+  UserPde                    UserPde[]
 
   @@index([company_id, status], map: "company_status")
 }
@@ -162,39 +157,6 @@ model DocumentTypes {
   CompanyBillingConfig CompanyBillingConfig[]
   LegalRepresentatives LegalRepresentatives[]
   Users                Users[]
-}
-
-model GuidePackages {
-  id         String    @id @db.VarChar(36)
-  guide_id   String?   @db.VarChar(36)
-  package_id String?   @db.VarChar(36)
-  created_at DateTime? @default(now()) @db.DateTime(0)
-  updated_at DateTime? @default(now()) @db.DateTime(0)
-  Guides     Guides?   @relation(fields: [guide_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "GuidePackages_ibfk_1")
-  Packages   Packages? @relation(fields: [package_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "GuidePackages_ibfk_2")
-
-  @@index([guide_id], map: "guide_id")
-  @@index([package_id], map: "package_id")
-}
-
-model Guides {
-  id                                                        String               @id @db.VarChar(36)
-  created_by_user_id                                        String?              @db.VarChar(36)
-  collection_point_id                                       String?              @db.VarChar(36)
-  delivery_point_id                                         String?              @db.VarChar(36)
-  service_type                                              Guides_service_type?
-  created_at                                                DateTime?            @default(now()) @db.DateTime(0)
-  package_count                                             Int?
-  total_amount                                              Decimal?             @db.Decimal(10, 2)
-  updated_at                                                DateTime?            @default(now()) @db.DateTime(0)
-  GuidePackages                                             GuidePackages[]
-  Users                                                     Users?               @relation(fields: [created_by_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Guides_ibfk_1")
-  DeliveryPoints_Guides_collection_point_idToDeliveryPoints DeliveryPoints?      @relation("Guides_collection_point_idToDeliveryPoints", fields: [collection_point_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Guides_ibfk_2")
-  DeliveryPoints_Guides_delivery_point_idToDeliveryPoints   DeliveryPoints?      @relation("Guides_delivery_point_idToDeliveryPoints", fields: [delivery_point_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "Guides_ibfk_3")
-
-  @@index([collection_point_id], map: "collection_point_id")
-  @@index([created_by_user_id], map: "created_by_user_id")
-  @@index([delivery_point_id], map: "delivery_point_id")
 }
 
 model Incidents {
@@ -233,7 +195,7 @@ model LegalRepresentatives {
 
 model Packages {
   id              String                   @id @db.VarChar(36)
-  PDE_Id          String                   @db.VarChar(45)
+  PdE_id          String                   @db.VarChar(45)
   package_number  Json
   courier_id      String?                  @db.VarChar(36)
   recipient_name  String?                  @db.VarChar(100)
@@ -245,17 +207,20 @@ model Packages {
   payment_method  Packages_payment_method?
   security_code   String?                  @db.VarChar(20)
   additional_info String?                  @db.Text
-  status          Packages_status?
   received_at     DateTime?                @db.DateTime(0)
   delivered_at    DateTime?                @db.DateTime(0)
   created_at      DateTime?                @default(now()) @db.DateTime(0)
   updated_at      DateTime?                @default(now()) @db.DateTime(0)
   Merchant        String?                  @db.VarChar(45)
+  status_id       String                   @db.VarChar(255)
   DeliveryHistory DeliveryHistory[]
-  GuidePackages   GuidePackages[]
   Incidents       Incidents[]
+  Status          Status                   @relation(fields: [status_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "PackageStatus")
+  DeliveryPoints  DeliveryPoints           @relation(fields: [PdE_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "PackagesPdE")
 
   @@index([courier_id], map: "Packages_ibfk_1")
+  @@index([status_id], map: "PackageStatus")
+  @@index([PdE_id], map: "PackagesPdE")
 }
 
 model Roles {
@@ -297,7 +262,6 @@ model Users {
   CompanyStatusHistory                                     CompanyStatusHistory[]
   DeliveryHistory                                          DeliveryHistory[]
   DeliveryPointStatusHistory                               DeliveryPointStatusHistory[]
-  Guides                                                   Guides[]
   Incidents                                                Incidents[]
   UserCompany                                              UserCompany[]
   UserPde                                                  UserPde[]
@@ -391,6 +355,14 @@ model UserPde {
   @@index([delivery_point_id], map: "fk_userpde_delivery_point")
 }
 
+model Status {
+  id         String     @id @db.VarChar(36)
+  name       String     @db.VarChar(50)
+  created_at DateTime?  @default(now()) @db.DateTime(0)
+  updated_at DateTime?  @default(now()) @db.DateTime(0)
+  Packages   Packages[]
+}
+
 enum CompanyBillingConfig_billing_type {
   CONTADO
   CREDITO
@@ -400,12 +372,6 @@ enum CompanyBillingConfig_billing_type {
 enum Companies_company_type {
   PdE
   Transportista
-}
-
-enum Guides_service_type {
-  EXPRESS
-  REGULAR
-  ECONOMICO
 }
 
 enum Packages_size {
@@ -434,15 +400,6 @@ enum Packages_payment_method {
   OTRO
 }
 
-enum Packages_status {
-  PENDIENTE
-  EN_TRANSITO
-  ENTREGADO
-  CANCELADO
-  RECHAZADO
-  INCIDENCIA
-}
-
 enum Notifications_type {
   company_review_request
   company_approved
@@ -458,11 +415,7 @@ enum Users_status {
   rejected
 }
 
-<<<<<<< createCompaniesLogic
 enum DeliveryPointStatusHistory_previous_status {
-=======
-enum DeliveryPoints_status {
->>>>>>> dev
   draft
   under_review
   active
@@ -470,11 +423,7 @@ enum DeliveryPoints_status {
   rejected
 }
 
-<<<<<<< createCompaniesLogic
 enum DeliveryPointStatusHistory_new_status {
-=======
-enum DeliveryPointStatusHistory_previous_status {
->>>>>>> dev
   draft
   under_review
   active
@@ -482,11 +431,7 @@ enum DeliveryPointStatusHistory_previous_status {
   rejected
 }
 
-<<<<<<< createCompaniesLogic
 enum DeliveryPoints_status {
-=======
-enum DeliveryPointStatusHistory_new_status {
->>>>>>> dev
   draft
   under_review
   active
