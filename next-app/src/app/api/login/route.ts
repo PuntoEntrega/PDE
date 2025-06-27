@@ -18,15 +18,22 @@ export async function POST(req: NextRequest) {
       include: { Roles: true },
     });
 
+    console.log("user", user);
+    
+
     if (!user) {
       return NextResponse.json({ error: "Usuario no encontrado" }, { status: 401 });
     }
+
 
     // 2. Compara contraseña
     const valid = await compare(password, user.password_hash);
     if (!valid) {
       return NextResponse.json({ error: "Credenciales inválidas" }, { status: 401 });
     }
+
+    console.log(valid);
+    
 
     // 3. Genera el JWT
     const JWT_SECRET = process.env.JWT_SECRET;
@@ -54,6 +61,12 @@ export async function POST(req: NextRequest) {
       JWT_SECRET,
       { expiresIn: "8h" }
     );
+
+    console.log(token);
+    
+
+    // 4. Determina el context ID
+    const isSuperAdmin = user.Roles?.name === "SuperAdminEmpresa"; // ajusta si tu rol tiene otro nombre
 
     // 5. Serializa cookies
     const tokenCookie = serialize("token", token, {

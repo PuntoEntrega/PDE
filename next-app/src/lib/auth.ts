@@ -37,6 +37,7 @@ sub: string
   first_name: string
   last_name: string
   username: string
+  level: number
   email: string
   phone: string
   avatar_url: string
