@@ -4,16 +4,17 @@ import { getSession } from "@/lib/auth"
 
 // PATCH /api/collaborators/[id]/toggle-active
 export async function PATCH(
-    req: NextRequest,
-    { params }: { params: { id: string } }
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
 ) {
+  const { id: targetUserId } = await params; 
+  
     const session = await getSession()
     if (!session) {
         return NextResponse.json({ error: "No autorizado" }, { status: 401 })
     }
 
     const actingUserId = session.sub
-    const targetUserId = params.id
 
     // Obtener usuario que hace la acción
     const actingUser = await prisma.users.findUnique({

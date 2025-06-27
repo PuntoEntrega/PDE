@@ -2,8 +2,11 @@ import { NextRequest, NextResponse } from "next/server"
 import prisma from "@/lib/prisma"
 import { uploadImageToS3 } from "@/lib/s3Uploader"
 
-export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
-    const userId = params.id
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id: userId } = await params; 
 
     try {
         const formData = await req.formData()
