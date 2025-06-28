@@ -47,6 +47,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/Components/ui/dropdown-menu"
+import { Button } from "../ui/button"
 
 interface SidebarProps {
   children: React.ReactNode
@@ -121,10 +122,10 @@ export function Sidebar({ children, userName }: SidebarProps) {
           {/* User profile y notificaciones */}
           <div className="flex items-center space-x-3">
             {/* Notificaciones */}
-            <button className="relative p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
+            <Button className="relative p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
               <Bell className="w-5 h-5" />
               <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-            </button>
+            </Button> 
 
             {/* User profile */}
             <DropdownMenu>
@@ -278,10 +279,10 @@ export function Sidebar({ children, userName }: SidebarProps) {
         <header className="h-20 bg-white border-b flex items-center justify-end px-6 shadow-sm z-5">
           <div className="flex items-center space-x-4">
             {/* Notificaciones */}
-            <button className="relative p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
+            <Button className="relative p-2 text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
               <Bell className="w-6 h-6" />
               <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-            </button>
+            </Button>
 
             {/* User profile */}
             <DropdownMenu>
