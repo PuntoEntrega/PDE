@@ -94,7 +94,7 @@ const SidebarProvider = React.forwardRef<
       return isMobile
         ? setOpenMobile((open) => !open)
         : setOpen((open) => !open)
-    }, [isMobile, setOpen, setOpenMobile])
+    }, [isMobile, setOpen, setOpenMobile])  
 
     // Adds a keyboard shortcut to toggle the sidebar.
     React.useEffect(() => {
@@ -716,7 +716,8 @@ const SidebarMenuSubButton = React.forwardRef<
   const Comp = asChild ? Slot : "a"
 
   return (
-    <Comp
+    <div>
+      <Comp
       ref={ref}
       data-sidebar="menu-sub-button"
       data-size={size}
@@ -731,6 +732,10 @@ const SidebarMenuSubButton = React.forwardRef<
       )}
       {...props}
     />
+    <h1>AIBDCOYBSDOCBY</h1>
+    </div>
+    
+
   )
 })
 SidebarMenuSubButton.displayName = "SidebarMenuSubButton"
