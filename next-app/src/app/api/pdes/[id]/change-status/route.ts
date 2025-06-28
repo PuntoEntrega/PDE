@@ -8,7 +8,6 @@ import { sendEmailWithMandrill } from "@/lib/messaging/email";
 import { getPDEStatusEmail } from "@/lib/templates/emailPDEStatus";
 import { v4 as uuidv4 } from "uuid"
 
-
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -20,8 +19,6 @@ export async function PATCH(
   if (!deliveryPointId) {
     return NextResponse.json({ error: "ID de PDE no recibido" }, { status: 400 });
   }
-
-
 
   console.log("📦 deliveryPointId recibido:", deliveryPointId);
 

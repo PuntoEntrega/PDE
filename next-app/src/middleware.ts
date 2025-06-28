@@ -18,6 +18,7 @@ const PUBLIC_PREFIXES = [
   "/api/reset-password",
   "/forgot-password",
   "/api/forgot-password",
+  "/api/webhooks/moovin",
   "/complete-registration",
   "/api/complete-registration",
   "/unauthorized",
