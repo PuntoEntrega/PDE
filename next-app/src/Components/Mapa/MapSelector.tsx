@@ -6,6 +6,7 @@ import {
   Marker,
   useMapEvent,
   useMap,
+  ZoomControl,
 } from "react-leaflet"
 import L from "leaflet"
 import {
@@ -18,7 +19,6 @@ import {
 import LeafletGeocoder from "./LeafletGeocoder"
 import { reverseGeocode } from "@/lib/map/reverseGeocode"
 import "leaflet/dist/leaflet.css"
-import "./index.css"
 import { AnyARecord } from "node:dns"
 
 /* ------------------ fix iconos ------------------ */
@@ -121,6 +121,20 @@ const MapSelector = forwardRef<MapSelectorRef, MapSelectorProps>(
         scrollWheelZoom
         className="h-full w-full"
       >
+        <Marker
+          position={position}
+          draggable
+          eventHandlers={{
+            dragend: (e) => {
+              const { lat, lng } = (e.target as L.Marker).getLatLng()
+              moveMarker(lat, lng)
+            },
+          }}
+        />
+
+        <MapClickHandler onClick={(lat, lng) => moveMarker(lat, lng)} />
+
+        <LeafletGeocoder onGeocode={(lat, lng) => moveMarker(lat, lng)} />
         <SetMapRef mapRef={mapRef} />
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
       </MapContainer>
